@@ -1,64 +1,76 @@
 const mongoose = require('mongoose');
 
+const ReviewSchema = new mongoose.Schema({
+  user:    { type: mongoose.Schema.ObjectId, ref: 'User' },
+  name:    { type: String, required: true },
+  rating:  { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String, default: '' },
+  reply:   { type: String, default: '' },
+}, { timestamps: true });
+
 const ProductSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Please add a product name'],
     trim: true,
-    maxlength: [100, 'Name can not be more than 100 characters']
+    maxlength: [100, 'Name can not be more than 100 characters'],
   },
   slug: {
     type: String,
-    unique: true
+    unique: true,
   },
   description: {
     type: String,
     required: [true, 'Please add a description'],
-    maxlength: [2000, 'Description can not be more than 2000 characters']
+    maxlength: [2000, 'Description can not be more than 2000 characters'],
   },
   price: {
     type: Number,
-    required: [true, 'Please add a price']
+    required: [true, 'Please add a price'],
   },
   stock: {
     type: Number,
     required: [true, 'Please add stock quantity'],
-    default: 0
+    default: 0,
   },
   images: {
     type: [String],
-    default: ['no-photo.jpg']
+    default: ['no-photo.jpg'],
   },
   category: {
     type: mongoose.Schema.ObjectId,
     ref: 'Category',
-    required: true
+    required: true,
   },
   seller: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   averageRating: {
     type: Number,
-    min: [1, 'Rating must be at least 1'],
-    max: [5, 'Rating must can not be more than 5']
-  }
+    min: 1,
+    max: 5,
+  },
+  reviews: [ReviewSchema],
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
 });
 
-// Create product slug from the name
-ProductSchema.pre('save', function(next) {
-  this.slug = this.name.toLowerCase().split(' ').join('-');
+ProductSchema.pre('save', function (next) {
+  this.slug = this.name.toLowerCase().split(' ').join('-').replace(/[^\w-]+/g, '');
   next();
 });
 
-module.exports = mongoose.model('Product', ProductSchema);
+ProductSchema.methods.recalcRating = function () {
+  if (!this.reviews.length) { this.averageRating = undefined; return; }
+  this.averageRating = this.reviews.reduce((s, r) => s + r.rating, 0) / this.reviews.length;
+};
 
+module.exports = mongoose.model('Product', ProductSchema);

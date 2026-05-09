@@ -16,7 +16,7 @@ const ROLE_COLORS = {
 
 export default function AdminDashboard() {
   const navigate  = useNavigate()
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, status: authStatus } = useAuth()
   const [tab,      setTab]      = useState('Overview')
   const [users,    setUsers]    = useState([])
   const [products, setProducts] = useState([])
@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [stats,    setStats]    = useState({})
 
   useEffect(() => {
+    if (authStatus === 'loading') return
     if (!isAdmin) { navigate('/'); return }
     Promise.all([
       api.get('/admin/users').catch(() => ({ data: [] })),
@@ -46,7 +47,7 @@ export default function AdminDashboard() {
         sellers:  usersArr.filter(u => u.role === 'seller').length,
       })
     }).finally(() => setLoading(false))
-  }, [isAdmin, navigate])
+  }, [isAdmin, authStatus, navigate])
 
   const promoteToSeller = async (row) => {
     if (!confirm(`Promote ${row.name} to Seller?`)) return

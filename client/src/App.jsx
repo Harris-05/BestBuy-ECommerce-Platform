@@ -1,5 +1,7 @@
-﻿import { Suspense, lazy } from 'react'
+﻿import { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { fetchMe } from './store/authSlice'
 import Layout from './components/layout/Layout'
 import ChatBot from './components/ai/ChatBot'
 
@@ -31,6 +33,9 @@ function PageLoader() {
 }
 
 export default function App() {
+  const dispatch = useDispatch()
+  useEffect(() => { dispatch(fetchMe()) }, [dispatch])
+
   return (
     <Router>
       <Layout>

@@ -21,7 +21,7 @@ const TABS = ['Overview', 'Products', 'Orders', 'Reviews']
 
 export default function SellerDashboard() {
   const navigate = useNavigate()
-  const { user, isSeller } = useAuth()
+  const { user, isSeller, status: authStatus } = useAuth()
   const [tab,      setTab]      = useState('Overview')
   const [products, setProducts] = useState([])
   const [orders,   setOrders]   = useState([])
@@ -31,6 +31,7 @@ export default function SellerDashboard() {
   const [editing,  setEditing]  = useState(null)
 
   useEffect(() => {
+    if (authStatus === 'loading') return
     if (!isSeller) { navigate('/'); return }
     Promise.all([
       api.get('/products/mine').catch(() => ({ data: [] })),
@@ -43,7 +44,7 @@ export default function SellerDashboard() {
       const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
       setStats({ revenue, orders: o.data.length, products: p.data.length, avgRating })
     }).finally(() => setLoading(false))
-  }, [isSeller, navigate])
+  }, [isSeller, authStatus, navigate])
 
   const deleteProduct = async (row) => {
     if (!confirm(`Delete "${row.name}"?`)) return
