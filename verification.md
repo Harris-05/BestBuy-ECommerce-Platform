@@ -42,7 +42,7 @@ This document maps the project requirements to the **MERN (MongoDB, Express, Rea
 
 ## 💡 8. Content & Creativity (30/30 pts)
 - **[23-32] Highlights**: 
-  - Integrated **Claude AI Assistant**.
+  - Integrated **Ultra-Fast Groq AI Assistant**.
   - **Abandoned Cart Automation** via Cron/Resend.
   - Premium **Framer Motion** animations and **Dark Mode**.
   - High-performance **Redis caching** and **PWA support**.

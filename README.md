@@ -4,15 +4,16 @@
 [![Express](https://img.shields.io/badge/Express-4.18-black?style=for-the-badge&logo=express)](https://expressjs.com/)
 [![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![Groq](https://img.shields.io/badge/Groq-AI_Speed-orange?style=for-the-badge&logo=groq)](https://groq.com/)
 [![Stripe](https://img.shields.io/badge/Stripe-Payments-635BFF?style=for-the-badge&logo=stripe)](https://stripe.com/)
 
-A production-grade, AI-powered e-commerce ecosystem built on the **MERN** stack. This platform features a high-performance React frontend and a scalable Express/MongoDB backend.
+A production-grade, AI-powered e-commerce ecosystem built on the **MERN** stack. This platform features a high-performance React frontend and a scalable Express/MongoDB backend, with ultra-fast AI assistance powered by **Groq**.
 
 ---
 
 ## ✨ Key Features
 - **MERN Architecture**: Full-stack JavaScript for seamless development.
-- **AI ShopBot**: Intelligent shopping assistance via Claude-Sonnet.
+- **Ultra-Fast AI ShopBot**: Sub-second shopping assistance via Groq's LPU.
 - **Redux State Mgmt**: Centralized management for cart, auth, and products.
 - **Enterprise Security**: JWT-in-Cookie auth, API rate limiting, and RBAC.
 - **Admin Suite**: Real-time sales analytics and complete inventory CRUD.

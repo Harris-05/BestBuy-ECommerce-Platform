@@ -11,10 +11,10 @@ A production-ready, high-performance e-commerce ecosystem built on the MERN stac
   - Multi-faceted filtering and sorting.
 - **Interactive Cart**: Redux Toolkit-managed cart with optimistic updates and local persistence.
 
-## 🤖 2. AI-Powered Assistance (ShopBot)
-- **Claude Assistant**: Intelligent shopping guide powered by Anthropic's Claude-Sonnet.
-- **Streaming Responses**: Real-time message streaming from Node.js to React via Server-Sent Events or Fetch Stream.
-- **Product Context**: The AI understands your current inventory and stock levels via backend context injection.
+## 🤖 2. AI-Powered Assistance (Groq LPU)
+- **Groq-Powered ShopBot**: Ultra-fast shopping guide utilizing Groq's LPU inference for sub-second responses.
+- **Streaming Responses**: Instant, real-time message streaming from Node.js to React using `groq-sdk`.
+- **Intelligent Reasoning**: Powered by Llama 3.1 70B for high-quality product advice and context-aware help.
 
 ## 🔐 3. Security & Authentication
 - **JWT Authentication**: Secure stateless auth with JSON Web Tokens.

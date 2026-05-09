@@ -37,6 +37,7 @@ This plan divides the project between **Developer 1 (Client/React)** and **Devel
    - [ ] Implement Server-side Zod validation and Error Middleware.
 3. **Operations**
    - [ ] Integrate Stripe Webhooks and Resend email automation.
+   - [ ] Implement the **Groq API** streaming route for the ShopBot.
    - [ ] Setup Upstash Redis for rate limiting and query caching.
    - [ ] Configure Sentry for backend error monitoring.
 

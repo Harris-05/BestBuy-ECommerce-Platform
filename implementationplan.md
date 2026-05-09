@@ -10,7 +10,7 @@
 | **Backend** | **Node.js** + **Express.js** | Scalable, high-performance JS server |
 | **Database** | **MongoDB** + **Mongoose** | Flexible NoSQL, perfect for product catalogs |
 | **Auth** | **JWT** + **Cookies** | Secure, stateless authentication |
-| **AI Chatbot** | **Claude API** (Anthropic) | Intelligent shopping assistance |
+| **AI Chatbot** | **Groq Cloud API** | Ultra-fast LPU inference (Sub-second response) |
 | **Payments** | **Stripe** | Professional checkout integration |
 | **Image Storage** | **Cloudinary** | Optimized media delivery |
 | **Emails** | **Resend** | Transactional email automation |
@@ -46,7 +46,7 @@ finalproj/
 
 ### 1.1 Backend Setup
 - Initialize Node.js project in `/server`.
-- Install dependencies: `express mongoose dotenv cors helmet jsonwebtoken bcryptjs cloudinary stripe resend @anthropic-ai/sdk`.
+- Install dependencies: `express mongoose dotenv cors helmet jsonwebtoken bcryptjs cloudinary stripe resend groq-sdk`.
 - Configure `mongoose.connect()` to MongoDB Atlas.
 
 ### 1.2 Frontend Setup
@@ -96,9 +96,10 @@ finalproj/
 - `POST /api/orders/checkout`: Create Stripe Payment Intent.
 - Frontend: Stripe Elements integration with success redirect.
 
-### 4.4 AI ShopBot
-- API: Claude streaming endpoint using `Anthropic` SDK.
-- Frontend: Floating chat drawer with streaming message display.
+### 4.4 AI ShopBot (Groq Speed)
+- API: Groq streaming endpoint using `groq-sdk`.
+- Model: `llama-3.1-70b-versatile` for high-speed reasoning.
+- Frontend: Floating chat drawer with instant streaming display.
 
 ---
 
