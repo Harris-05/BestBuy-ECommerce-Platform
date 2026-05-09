@@ -4,6 +4,25 @@ This plan divides the project between **Developer 1 (Client/React)** and **Devel
 
 ---
 
+## 📂 Project Structure
+
+```text
+finalproj/
+├── client/           # Developer 1 Focus (React, Redux, UI)
+│   ├── src/assets/
+│   ├── src/components/
+│   ├── src/pages/
+│   └── src/store/
+├── server/           # Developer 2 Focus (Node, Express, Mongo)
+│   ├── src/models/
+│   ├── src/routes/
+│   ├── src/middleware/
+│   └── src/utils/
+└── README.md
+```
+
+---
+
 ## 🧑‍💻 Developer 1: Frontend & React State
 **Focus:** React UI, Redux Store, Client-side logic, and AI UI.
 

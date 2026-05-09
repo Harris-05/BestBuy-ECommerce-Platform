@@ -23,20 +23,26 @@
 finalproj/
 ├── client/                   # React Frontend (Vite)
 │   ├── src/
-│   │   ├── components/       # UI & Shared Components
-│   │   ├── pages/            # Shop, Admin, Auth pages
-│   │   ├── store/            # Redux Slices (auth, cart)
-│   │   ├── hooks/            # Custom React hooks
-│   │   └── services/         # API call wrappers (Axios)
+│   │   ├── assets/           # Images, Fonts, Global CSS
+│   │   ├── components/       # shadcn/ui & Shared Layouts
+│   │   ├── pages/            # Shop, Admin, Auth, Profile
+│   │   ├── store/            # Redux Toolkit (auth, cart, products)
+│   │   ├── hooks/            # useAuth, useCart, useDebounce
+│   │   ├── services/         # API (Axios) instances
+│   │   └── lib/              # Utils, Validations (Zod)
+│   ├── .env                  # Client-side env (VITE_API_URL)
 │   └── tailwind.config.js
 ├── server/                   # Express Backend
 │   ├── src/
-│   │   ├── controllers/      # Route logic
+│   │   ├── config/           # DB connection, Groq/Stripe config
+│   │   ├── controllers/      # Request handlers
 │   │   ├── models/           # Mongoose Schemas
-│   │   ├── routes/           # API endpoints
-│   │   ├── middleware/       # Auth & Error guards
-│   │   └── utils/            # Claude, Stripe, Resend helpers
+│   │   ├── routes/           # Express Routers
+│   │   ├── middleware/       # JWT Auth, Error Handler, Rate Limiter
+│   │   └── utils/            # Groq, Stripe, Resend wrappers
+│   ├── .env                  # Backend secrets (MONGO_URI, GROQ_API_KEY)
 │   └── package.json
+├── .gitignore                # Optimized for MERN
 └── README.md
 ```
 

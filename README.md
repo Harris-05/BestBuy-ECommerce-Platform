@@ -48,6 +48,23 @@ cd client && npm run dev
 
 ---
 
+## 📂 Project Structure
+
+```text
+finalproj/
+├── client/           # React Frontend (Vite)
+│   ├── src/assets/   # Global styles & images
+│   ├── src/components/ # Reusable UI components
+│   └── src/store/    # Redux state management
+├── server/           # Express Backend
+│   ├── src/models/   # Mongoose schemas
+│   ├── src/routes/   # API endpoints
+│   └── src/utils/    # Groq & Stripe integrations
+└── README.md
+```
+
+---
+
 ## 📂 Documentation
 - [Feature List](./feature.md)
 - [Implementation Plan](./implementationplan.md)
