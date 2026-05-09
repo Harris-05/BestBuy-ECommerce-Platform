@@ -65,59 +65,55 @@ finalproj/
 ## Phase 2 — Database Modeling (Mongoose)
 
 ### 2.1 User Model
-- `name`, `email` (unique), `password` (hashed), `role` (enum: user, admin), `resetToken`.
+- `name`, `email` (unique), `password` (hashed), `role` (enum: user, seller, admin), `resetToken`.
 
-### 2.2 Product Model
-- `name`, `slug`, `description`, `price`, `stock`, `images` (array), `category` (ref), `isActive`.
+### 2.2 Product & Review Models
+- **Product**: `name`, `slug`, `description`, `price`, `stock`, `images`, `seller` (ref), `category`, `isActive`.
+- **Review**: `product` (ref), `user` (ref), `rating`, `comment`, `reply` (string - for seller), `createdAt`.
 
 ### 2.3 Order Model
-- `user` (ref), `items` (embedded), `total`, `status`, `paymentIntentId`, `shippingAddress`.
+- `user` (ref), `items` (embedded), `total`, `paymentMethod` (Stripe, COD), `status` (enum: Pending, Confirmed, Shipped, Delivered), `paymentIntentId`.
 
 ---
 
 ## Phase 3 — Authentication & JWT Security
 
 ### 3.1 Auth Logic
-- **Signup**: Validate → Hash Password → Save User.
-- **Login**: Verify Password → Generate JWT → Set HTTP-only Cookie.
-- **Middleware**: `authMiddleware` to verify JWT on protected routes; `adminMiddleware` for role checking.
-
-### 3.2 Security
-- Implement **Helmet** for headers and **express-rate-limit** for DDoS protection.
-- Ensure passwords are never returned in JSON responses.
+- **Signup**: Validate → Hash Password → Save User (default role: user).
+- **Seller Onboarding**: Admin-only route to upgrade user to `seller`.
+- **RBAC Middleware**: `checkRole(['user', 'seller', 'admin'])` for endpoint protection.
 
 ---
 
 ## Phase 4 — Feature Development
 
-### 4.1 Product Engine
-- API: `GET /api/products` with Mongoose query filtering (regex search, price range).
-- Frontend: Product Grid with skeleton loaders and persistent filters in URL.
+### 4.1 Smart Product Engine
+- API: `GET /api/products` with AI-assisted "Smart Search" (semantic or advanced regex).
+- Review System: `POST /api/reviews` for users and `PATCH /api/reviews/:id` for seller replies.
 
-### 4.2 Shopping Cart (Redux)
-- Cart logic handled in `cartSlice.ts`.
-- Persist cart to `localStorage` for guests and MongoDB for logged-in users.
+### 4.2 Checkout & Pipeline
+- **Payment Logic**: Conditional flow for Stripe (card) and COD.
+- **Pipeline UI**: Step-indicator in User Profile showing real-time order status.
 
-### 4.3 Stripe Checkout
-- `POST /api/orders/checkout`: Create Stripe Payment Intent.
-- Frontend: Stripe Elements integration with success redirect.
-
-### 4.4 AI ShopBot (Groq Speed)
-- API: Groq streaming endpoint using `groq-sdk`.
-- Model: `llama-3.1-70b-versatile` for high-speed reasoning.
-- Frontend: Floating chat drawer with instant streaming display.
+### 4.3 AI Chatbot & Seller Tools (Groq)
+- **ShopBot**: User-facing assistant for product discovery.
+- **Seller AI Assistant**: Endpoint `POST /api/ai/parse-product` to extract structured data from plain text for sellers.
 
 ---
 
-## Phase 5 — Admin Dashboard
-- **Admin Stats**: Aggregate sales data using MongoDB `$group` pipelines.
-- **Product Management**: Full CRUD UI with Cloudinary upload integration.
-- **User Management**: Toggle user status and roles.
+## Phase 5 — Dashboard & Email Pipeline
+
+### 5.1 Seller Dashboard
+- **Analytics**: Grouped sales data and product performance.
+- **Order Management**: Real-time update of status via `PATCH /api/orders/:id/status`.
+
+### 5.2 Transactional Email Pipeline
+- **Email Engine**: Resend + **Nunjucks** (Jinja2 equivalent for JS).
+- **Trigger System**: Hook into Order status changes to send specific templates for each pipeline step.
 
 ---
 
 ## Phase 6 — Industrial Enhancements
-- **Abandoned Cart**: Cron job to query idle carts and trigger Resend emails.
-- **Redis Caching**: Cache product results via Upstash for faster response.
-- **Sentry**: Error monitoring for both Client and Server.
-- **PWA**: Setup `vite-plugin-pwa` for offline support.
+- **Redis & Sentry**: Performance and error tracking.
+- **PWA**: Setup `vite-plugin-pwa`.
+- **Search Optimization**: Implement indexing for fast multi-faceted filtering.

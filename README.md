@@ -14,9 +14,12 @@ A production-grade, AI-powered e-commerce ecosystem built on the **MERN** stack.
 ## ✨ Key Features
 - **MERN Architecture**: Full-stack JavaScript for seamless development.
 - **Ultra-Fast AI ShopBot**: Sub-second shopping assistance via Groq's LPU.
-- **Redux State Mgmt**: Centralized management for cart, auth, and products.
+- **Seller AI Assistant**: Set product fields from plain English text using LLMs.
+- **Order Pipeline**: Real-time status tracking with automated email notifications.
+- **Multi-Payment Gateway**: Stripe, Card, and Cash on Delivery (COD) support.
+- **Review System**: User comments and seller replies with AI moderation.
 - **Enterprise Security**: JWT-in-Cookie auth, API rate limiting, and RBAC.
-- **Admin Suite**: Real-time sales analytics and complete inventory CRUD.
+- **Admin & Seller Suite**: Real-time sales analytics and complete inventory CRUD.
 
 ---
 

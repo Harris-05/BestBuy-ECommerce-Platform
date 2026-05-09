@@ -29,16 +29,16 @@ finalproj/
 ### 📋 Client Tasks
 1. **React Architecture**
    - [ ] Initialize Vite + Tailwind + shadcn/ui.
-   - [ ] Setup Redux Toolkit (Auth, Cart, Product Slices).
+   - [ ] Setup Redux Toolkit (Auth, Cart, Product, Review Slices).
    - [ ] Build the Product Grid, Search, and Filtering components.
-2. **Shopping Flow**
-   - [ ] Implement Cart Drawer with optimistic updates.
-   - [ ] Build the Checkout flow with Stripe Elements.
-   - [ ] Create user account and order history views.
-3. **AI & UI Polish**
-   - [ ] Implement the ShopBot chat drawer.
-   - [ ] Setup Framer Motion animations and Skeleton loaders.
-   - [ ] Configure `vite-plugin-pwa` and Dark Mode.
+2. **Shopping & Order Flow**
+   - [ ] Implement Cart Drawer and Product Detail pages with Reviews.
+   - [ ] Build Checkout flow supporting Stripe and COD.
+   - [ ] Create **Order Status Pipeline** visualization for users.
+3. **Seller & AI UI**
+   - [ ] Build **Seller Dashboard** with real-time order updates and product CRUD.
+   - [ ] Implement the **AI Field Filler** for seller product creation.
+   - [ ] Setup ShopBot chat drawer and Framer Motion animations.
 
 ---
 
@@ -46,19 +46,18 @@ finalproj/
 **Focus:** Express API, MongoDB Modeling, Security, and Integrations.
 
 ### 📋 Server Tasks
-1. **API & Database**
-   - [ ] Setup Express server and Mongoose connection.
-   - [ ] Define Mongoose Schemas (User, Product, Order, Coupon).
-   - [ ] Build JWT Authentication logic with HttpOnly cookies.
-2. **Admin & Logic**
-   - [ ] Create Admin CRUD endpoints with Cloudinary integration.
-   - [ ] Build MongoDB aggregation pipelines for dashboard stats.
-   - [ ] Implement Server-side Zod validation and Error Middleware.
-3. **Operations**
-   - [ ] Integrate Stripe Webhooks and Resend email automation.
-   - [ ] Implement the **Groq API** streaming route for the ShopBot.
-   - [ ] Setup Upstash Redis for rate limiting and query caching.
-   - [ ] Configure Sentry for backend error monitoring.
+1. **API & Database Modeling**
+   - [ ] Define Mongoose Schemas: User, Product, Review, Order (with Status enum).
+   - [ ] Build JWT Auth logic with RBAC (User/Seller/Admin).
+   - [ ] Implement Product search with AI/Groq-assisted smart search.
+2. **Business Logic & AI**
+   - [ ] Create Seller endpoints for product AI-filling and review replies.
+   - [ ] Build MongoDB aggregation for advanced seller analytics.
+   - [ ] Implement **Email Pipeline** using Resend + Jinja2-style templates (Nunjucks).
+3. **Integrations & Operations**
+   - [ ] Setup Stripe for card payments and logic for COD orders.
+   - [ ] Integrate **Groq API** for both ShopBot and Seller AI tools.
+   - [ ] Configure Sentry and Upstash Redis for production monitoring.
 
 ---
 
