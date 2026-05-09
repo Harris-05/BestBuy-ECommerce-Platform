@@ -1,0 +1,124 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-navy-deep:   #131921;
+    --color-navy:        #232F3E;
+    --color-navy-light:  #37475A;
+    --color-orange:      #FF9900;
+    --color-orange-hover: #E68A00;
+    --color-surface:     #F7FAFA;
+    --color-section-bg:  #EAEDED;
+    --color-card:        #FFFFFF;
+    --color-ink:         #181C1D;
+    --color-ink-muted:   #44474C;
+    --color-ink-faint:   #75777C;
+    --color-border:      #D5D9D9;
+    --color-border-strong: #ADB7B7;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--color-section-bg);
+    color: var(--color-ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Work Sans', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Primary orange CTA button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-orange text-navy-deep font-headline font-semibold text-label-md transition-colors hover:bg-orange-hover focus:outline-none focus:ring-2 focus:ring-orange focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Secondary outlined button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-white text-navy border border-border font-headline font-semibold text-label-md transition-colors hover:bg-surface focus:outline-none focus:ring-2 focus:ring-navy focus:ring-offset-2;
+  }
+
+  /* Ghost/text button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded text-ink-muted font-medium text-body-sm transition-colors hover:bg-surface-section hover:text-ink focus:outline-none;
+  }
+
+  /* Standard white card */
+  .card {
+    @apply bg-white border border-border rounded-lg shadow-card;
+  }
+
+  /* Form input */
+  .input {
+    @apply w-full px-3 py-2.5 bg-white border border-border rounded text-body-md text-ink placeholder-ink-faint transition-colors focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy;
+  }
+
+  /* Section container */
+  .container-content {
+    @apply max-w-content mx-auto px-md lg:px-lg;
+  }
+
+  /* Nav link style */
+  .nav-link {
+    @apply text-white text-body-sm hover:text-orange transition-colors cursor-pointer;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm text-label-sm font-medium bg-navy text-white;
+  }
+
+  /* Badge orange */
+  .badge-orange {
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm text-label-sm font-medium bg-orange text-navy-deep;
+  }
+
+  /* Chip */
+  .chip {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-body-sm bg-surface-section border border-border text-ink-muted cursor-pointer transition-colors hover:border-navy hover:text-navy;
+  }
+
+  .chip-active {
+    @apply chip border-navy text-navy bg-surface font-medium;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-section-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-navy-light);
+}
+
+/* Animate bounce for loading dots */
+@keyframes bounce-dot {
+  0%, 80%, 100% { transform: scale(0); }
+  40%           { transform: scale(1); }
+}
+.animate-bounce-dot {
+  animation: bounce-dot 1.2s infinite ease-in-out;
+}

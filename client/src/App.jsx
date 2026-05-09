@@ -1,29 +1,55 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/layout/Navbar'; // Adjust as needed
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ProductDetails from './pages/ProductDetails';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
+﻿import { Suspense, lazy } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Layout from './components/layout/Layout'
+import ChatBot from './components/ai/ChatBot'
 
-function App() {
+const Home          = lazy(() => import('./pages/Home'))
+const Products      = lazy(() => import('./pages/Products'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart          = lazy(() => import('./pages/Cart'))
+const Checkout      = lazy(() => import('./pages/Checkout'))
+const Login         = lazy(() => import('./pages/Login'))
+const Signup        = lazy(() => import('./pages/Signup'))
+const Profile       = lazy(() => import('./pages/Profile'))
+const SellerDash    = lazy(() => import('./pages/seller/Dashboard'))
+const AdminDash     = lazy(() => import('./pages/admin/Dashboard'))
+
+function PageLoader() {
   return (
-    <Router>
-      <Navbar />
-      <div className="container mx-auto p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-        </Routes>
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map(i => (
+          <span
+            key={i}
+            className="w-2.5 h-2.5 rounded-full bg-orange animate-bounce"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
       </div>
-    </Router>
-  );
+    </div>
+  )
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <Layout>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"                   element={<Home />} />
+            <Route path="/products"           element={<Products />} />
+            <Route path="/products/:slug"     element={<ProductDetail />} />
+            <Route path="/cart"               element={<Cart />} />
+            <Route path="/checkout"           element={<Checkout />} />
+            <Route path="/login"              element={<Login />} />
+            <Route path="/signup"             element={<Signup />} />
+            <Route path="/profile"            element={<Profile />} />
+            <Route path="/seller/dashboard"   element={<SellerDash />} />
+            <Route path="/admin/dashboard"    element={<AdminDash />} />
+          </Routes>
+        </Suspense>
+      </Layout>
+      <ChatBot />
+    </Router>
+  )
+}

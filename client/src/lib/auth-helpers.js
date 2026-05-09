@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs'
+﻿import bcrypt from 'bcryptjs'
 
 export const hashPassword = (plain: string) => bcrypt.hash(plain, 12)
 

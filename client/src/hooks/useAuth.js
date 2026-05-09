@@ -1,14 +1,19 @@
-'use client'
-
-import { useSession } from 'next-auth/react'
+﻿import { useSelector, useDispatch } from 'react-redux'
+import { loginUser, logoutUser, registerUser } from '../store/authSlice'
 
 export function useAuth() {
-  const { data: session, status } = useSession()
+  const dispatch = useDispatch()
+  const { user, status, error } = useSelector((s) => s.auth)
 
   return {
-    user: session?.user ?? null,
-    isAdmin: (session?.user as any)?.role === 'ADMIN',
-    isAuthenticated: status === 'authenticated',
-    isLoading: status === 'loading',
+    user,
+    status,
+    error,
+    isAuthenticated: !!user,
+    isAdmin:  user?.role === 'admin',
+    isSeller: user?.role === 'seller' || user?.role === 'admin',
+    login:    (creds)   => dispatch(loginUser(creds)),
+    register: (payload) => dispatch(registerUser(payload)),
+    logout:   ()        => dispatch(logoutUser()),
   }
 }

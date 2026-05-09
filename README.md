@@ -56,7 +56,7 @@ cd client && npm run dev
 ```text
 finalproj/
 ├── client/           # React Frontend (Vite)
-│   ├── src/assets/   # Global styles & images
+│   ├── src/assets/   # bestbuy styles & images
 │   ├── src/components/ # Reusable UI components
 │   └── src/store/    # Redux state management
 ├── server/           # Express Backend

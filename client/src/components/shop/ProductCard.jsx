@@ -1,46 +1,98 @@
-'use client'
-
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { StarRating } from './StarRating'
-import { useCart } from '@/hooks/useCart'
+import { ShoppingCart } from 'lucide-react'
+import StarRating from './StarRating'
+import { useCart } from '../../hooks/useCart'
 
-type Product = {
-  id: string
-  slug: string
-  name: string
-  price: number | string
-  images: string[]
-  reviews: { rating: number }[]
-}
+export default function ProductCard({ product }) {
+  const { addItem, openDrawer } = useCart()
 
-export function ProductCard({ product }: { product: Product }) {
-  const { addItem } = useCart()
-  const avgRating = product.reviews.length
+  const avgRating = product.reviews?.length
     ? product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length
-    : 0
+    : product.rating ?? 0
+  const reviewCount = product.reviews?.length ?? product.reviewCount ?? 0
+  const image = Array.isArray(product.images) ? product.images[0] : product.image ?? 'https://placehold.co/400x300?text=No+Image'
+  const slug  = product.slug ?? product._id ?? product.id
+
+  const handleAddToCart = (e) => {
+    e.preventDefault()
+    addItem({
+      productId: product._id ?? product.id,
+      name:      product.name,
+      price:     Number(product.price),
+      image,
+      slug,
+    })
+    openDrawer()
+  }
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+    <motion.article
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
+      className="card group flex flex-col overflow-hidden hover:shadow-card-hover transition-shadow"
     >
-      <Link href={`/products/${product.slug}`}>
-        <img src={product.images[0]} alt={product.name} className="w-full h-48 object-cover" />
-        <div className="p-4 space-y-1">
-          <p className="font-medium truncate">{product.name}</p>
-          <StarRating rating={avgRating} />
-          <p className="text-[#e94560] font-bold">${product.price}</p>
-        </div>
+      <Link to={`/products/${slug}`} className="block overflow-hidden">
+        <img
+          src={image}
+          alt={product.name}
+          className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
       </Link>
-      <div className="px-4 pb-4">
+
+      {/* Badges */}
+      {product.isBestSeller && (
+        <span className="badge absolute top-3 left-3">Best Seller</span>
+      )}
+
+      <div className="flex flex-col flex-1 p-4 gap-2">
+        {/* Category */}
+        {product.category && (
+          <span className="text-label-sm text-ink-faint uppercase tracking-wide">
+            {typeof product.category === 'object' ? product.category.name : product.category}
+          </span>
+        )}
+
+        {/* Name */}
+        <Link to={`/products/${slug}`}>
+          <h3 className="text-body-md font-medium text-ink line-clamp-2 group-hover:text-navy transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+
+        {/* Rating */}
+        <StarRating rating={avgRating} count={reviewCount} />
+
+        {/* Price row */}
+        <div className="flex items-baseline gap-2 mt-auto">
+          <span className="font-headline text-headline-sm text-ink">${Number(product.price).toFixed(2)}</span>
+          {product.originalPrice && (
+            <span className="text-body-sm text-ink-faint line-through">
+              ${Number(product.originalPrice).toFixed(2)}
+            </span>
+          )}
+          {product.originalPrice && (
+            <span className="badge-orange text-[11px]">
+              {Math.round((1 - product.price / product.originalPrice) * 100)}% off
+            </span>
+          )}
+        </div>
+
+        {/* Delivery */}
+        {product.freeDelivery && (
+          <p className="text-label-sm text-green-600">FREE Delivery</p>
+        )}
+
+        {/* Add to cart */}
         <button
-          onClick={() => addItem(product.id)}
-          className="w-full bg-[#1a1a2e] text-white py-2 rounded text-sm hover:bg-[#e94560] transition-colors"
+          onClick={handleAddToCart}
+          className="btn-primary w-full mt-2 text-body-sm"
         >
+          <ShoppingCart size={15} />
           Add to Cart
         </button>
       </div>
-    </motion.div>
+    </motion.article>
   )
 }

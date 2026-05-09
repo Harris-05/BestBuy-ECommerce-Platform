@@ -1,44 +1,95 @@
-'use client'
+﻿import { useState } from 'react'
+import { Star } from 'lucide-react'
+import api from '../../services/api'
+import { useAuth } from '../../hooks/useAuth'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
-
-export function ReviewForm({ productId }: { productId: string }) {
-  const { data: session } = useSession()
-  const [rating, setRating] = useState(5)
+export default function ReviewForm({ productId, onSuccess }) {
+  const { isAuthenticated } = useAuth()
+  const [rating,  setRating]  = useState(0)
+  const [hover,   setHover]   = useState(0)
   const [comment, setComment] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error,   setError]   = useState('')
+  const [done,    setDone]    = useState(false)
 
-  if (!session) return <p className="text-sm text-gray-500">Log in to leave a review.</p>
-  if (submitted) return <p className="text-green-600 text-sm">Review submitted!</p>
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    await fetch('/api/reviews', {
-      method: 'POST',
-      body: JSON.stringify({ productId, rating, comment }),
-      headers: { 'Content-Type': 'application/json' },
-    })
-    setSubmitted(true)
+    if (!rating)         return setError('Please select a rating.')
+    if (!comment.trim()) return setError('Please write a comment.')
+    setLoading(true); setError('')
+    try {
+      await api.post('/reviews', { productId, rating, comment })
+      setDone(true)
+      onSuccess?.()
+    } catch (err) {
+      setError(err.response?.data?.message ?? 'Failed to submit review.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="card p-5 text-center text-ink-muted text-body-sm">
+        Please{' '}
+        <a href="/login" className="text-navy font-medium hover:underline">sign in</a>
+        {' '}to write a review.
+      </div>
+    )
+  }
+
+  if (done) {
+    return (
+      <div className="card p-5 text-center text-green-700 text-body-sm font-medium">
+        Thank you! Your review has been submitted.
+      </div>
+    )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 border p-4 rounded">
-      <h3 className="font-medium">Write a Review</h3>
-      <div className="flex gap-2 items-center">
-        <label className="text-sm">Rating:</label>
-        <select value={rating} onChange={e => setRating(Number(e.target.value))} className="border p-1 rounded text-sm">
-          {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} stars</option>)}
-        </select>
+    <form onSubmit={handleSubmit} className="card p-5 space-y-4">
+      <h3 className="font-headline font-semibold text-headline-sm">Write a Review</h3>
+
+      {/* Star selector */}
+      <div>
+        <label className="text-label-md text-ink-muted block mb-2">Your Rating</label>
+        <div className="flex gap-1">
+          {[1,2,3,4,5].map(s => (
+            <button
+              key={s}
+              type="button"
+              onMouseEnter={() => setHover(s)}
+              onMouseLeave={() => setHover(0)}
+              onClick={() => setRating(s)}
+            >
+              <Star
+                size={24}
+                className={(hover || rating) >= s
+                  ? 'fill-orange text-orange'
+                  : 'fill-none text-gray-300'}
+              />
+            </button>
+          ))}
+        </div>
       </div>
-      <textarea
-        value={comment}
-        onChange={e => setComment(e.target.value)}
-        className="w-full border p-2 rounded text-sm h-24 resize-none"
-        placeholder="Share your thoughts..."
-        required
-      />
-      <button type="submit" className="bg-[#e94560] text-white px-4 py-2 rounded text-sm">Submit Review</button>
+
+      {/* Comment */}
+      <div>
+        <label className="text-label-md text-ink-muted block mb-2">Your Review</label>
+        <textarea
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+          rows={4}
+          placeholder="What did you like or dislike? What did you use this product for?"
+          className="input resize-none"
+        />
+      </div>
+
+      {error && <p className="text-body-sm text-red-600">{error}</p>}
+
+      <button type="submit" disabled={loading} className="btn-primary">
+        {loading ? 'Submitting…' : 'Submit Review'}
+      </button>
     </form>
   )
 }

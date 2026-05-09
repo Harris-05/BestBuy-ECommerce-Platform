@@ -23,7 +23,7 @@
 finalproj/
 ├── client/                   # React Frontend (Vite)
 │   ├── src/
-│   │   ├── assets/           # Images, Fonts, Global CSS
+│   │   ├── assets/           # Images, Fonts, bestbuy CSS
 │   │   ├── components/       # shadcn/ui & Shared Layouts
 │   │   ├── pages/            # Shop, Admin, Auth, Profile
 │   │   ├── store/            # Redux Toolkit (auth, cart, products)

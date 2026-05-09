@@ -1,15 +1,20 @@
-import { Star } from 'lucide-react'
+﻿import { Star } from 'lucide-react'
 
-export function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
+export default function StarRating({ rating = 0, count, size = 14 }) {
   return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: max }, (_, i) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map(star => (
         <Star
-          key={i}
-          size={14}
-          className={i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+          key={star}
+          size={size}
+          className={star <= Math.round(rating)
+            ? 'fill-orange text-orange'
+            : 'fill-none text-gray-300'}
         />
       ))}
+      {count !== undefined && (
+        <span className="text-label-sm text-ink-muted ml-1">({count})</span>
+      )}
     </div>
   )
 }

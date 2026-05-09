@@ -1,32 +1,28 @@
-'use client'
-
-import { useRouter, useSearchParams } from 'next/navigation'
+﻿import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useEffect, useState } from 'react'
 
-export function SearchBar() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [value, setValue] = useState(searchParams.get('q') ?? '')
-  const debounced = useDebounce(value, 300)
+export default function SearchBar({ defaultValue = '', placeholder = 'Search products…' }) {
+  const navigate = useNavigate()
+  const [query, setQuery] = useState(defaultValue)
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (debounced) params.set('q', debounced)
-    else params.delete('q')
-    router.push(`/products?${params.toString()}`)
-  }, [debounced])
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (query.trim()) navigate(`/products?search=${encodeURIComponent(query.trim())}`)
+  }
 
   return (
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+    <form onSubmit={handleSubmit} className="flex rounded overflow-hidden border border-border focus-within:border-navy transition-colors bg-white">
       <input
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder="Search products..."
-        className="w-full pl-9 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+        type="text"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 px-4 py-2.5 text-body-sm text-ink focus:outline-none bg-transparent placeholder-ink-faint"
       />
-    </div>
+      <button type="submit" className="px-4 bg-orange hover:bg-orange-hover transition-colors">
+        <Search size={16} className="text-navy-deep" />
+      </button>
+    </form>
   )
 }
