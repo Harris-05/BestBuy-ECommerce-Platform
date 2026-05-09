@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #1a1a2e;
+  --color-accent: #e94560;
+  --color-surface: #16213e;
+  --color-muted: #6b7280;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900 dark:bg-[#0f0f1a] dark:text-gray-100;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-playfair);
+  }
+}
