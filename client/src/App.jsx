@@ -1,7 +1,8 @@
-﻿import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { fetchMe } from './store/authSlice'
+import { fetchMe, logoutUser } from './store/authSlice'
+import { useAuth } from './hooks/useAuth'
 import Layout from './components/layout/Layout'
 import ChatBot from './components/ai/ChatBot'
 
@@ -15,6 +16,8 @@ const Signup        = lazy(() => import('./pages/Signup'))
 const Profile       = lazy(() => import('./pages/Profile'))
 const SellerDash    = lazy(() => import('./pages/seller/Dashboard'))
 const AdminDash     = lazy(() => import('./pages/admin/Dashboard'))
+const ForgotPassword = lazy(() => import('./pages/Auth/ForgotPassword'))
+const ResetPassword  = lazy(() => import('./pages/Auth/ResetPassword'))
 
 function PageLoader() {
   return (
@@ -34,7 +37,32 @@ function PageLoader() {
 
 export default function App() {
   const dispatch = useDispatch()
+  const { isAuthenticated } = useAuth()
+
   useEffect(() => { dispatch(fetchMe()) }, [dispatch])
+
+  // Requirement 22: Inactivity Timeout (15 minutes)
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    let timeout
+    const resetTimer = () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        dispatch(logoutUser())
+        alert('Your session has expired due to inactivity.')
+      }, 15 * 60 * 1000)
+    }
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
+    events.forEach(e => document.addEventListener(e, resetTimer))
+    resetTimer()
+
+    return () => {
+      events.forEach(e => document.removeEventListener(e, resetTimer))
+      clearTimeout(timeout)
+    }
+  }, [isAuthenticated, dispatch])
 
   return (
     <Router>
@@ -51,6 +79,8 @@ export default function App() {
             <Route path="/profile"            element={<Profile />} />
             <Route path="/seller/dashboard"   element={<SellerDash />} />
             <Route path="/admin/dashboard"    element={<AdminDash />} />
+            <Route path="/forgot-password"    element={<ForgotPassword />} />
+            <Route path="/resetpassword/:token" element={<ResetPassword />} />
           </Routes>
         </Suspense>
       </Layout>
