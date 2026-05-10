@@ -6,6 +6,7 @@ import { MessageCircle, X, Send, Loader2, User, Bot, ShoppingCart, Trash2 } from
 import { sendChat } from '../../services/aiService';
 import { addItem, openDrawer } from '../../store/cartSlice';
 import api from '../../services/api';
+import { resolveImage } from '../../lib/shop-utils';
 
 const STORAGE_KEY = 'bestbuy_chat_history';
 const WELCOME = { role: 'assistant', content: 'Hi! I\'m your BestBuy Assistant. How can I help you shop or manage your business today?' };
@@ -73,7 +74,7 @@ const ChatBot = () => {
                 productId: product._id,
                 name: product.name,
                 price: product.price,
-                image: product.images?.[0] || '',
+                image: resolveImage(product.images?.[0] || ''),
                 quantity: args.quantity || 1
               }));
               dispatch(openDrawer());
@@ -102,7 +103,7 @@ const ChatBot = () => {
           <div key={idx} className="mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {data.map((product) => (
               <div key={product._id} className="min-w-[160px] bg-white rounded-lg border border-border p-2 shadow-sm flex flex-col gap-1">
-                <img src={product.images?.[0] || '/no-photo.jpg'} alt={product.name} className="h-20 w-full object-contain bg-gray-50 rounded" />
+                <img src={resolveImage(product.images?.[0])} alt={product.name} className="h-20 w-full object-contain bg-gray-50 rounded" />
                 <p className="text-[11px] font-semibold line-clamp-1">{product.name}</p>
                 <p className="text-[10px] text-orange font-bold">${product.price}</p>
                 <div className="flex gap-1 mt-auto">
@@ -118,7 +119,7 @@ const ChatBot = () => {
                         productId: product._id,
                         name: product.name,
                         price: product.price,
-                        image: product.images?.[0] || '',
+                        image: resolveImage(product.images?.[0]),
                         quantity: 1
                       }));
                       dispatch(openDrawer());

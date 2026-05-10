@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart'
 import StarRating from '../components/shop/StarRating'
 import ReviewForm from '../components/shop/ReviewForm'
 import ProductGrid from '../components/shop/ProductGrid'
+import { resolveImage } from '../lib/shop-utils'
 
 export default function ProductDetail() {
   const { slug }   = useParams()
@@ -47,7 +48,9 @@ export default function ProductDetail() {
     )
   }
 
-  const images = product.images?.length ? product.images : ['https://placehold.co/600x450?text=No+Image']
+  const images = product.images?.length 
+    ? product.images.map(img => resolveImage(img)) 
+    : ['https://placehold.co/600x450?text=No+Image']
   const avgRating = product.reviews?.length
     ? product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length : 0
 
