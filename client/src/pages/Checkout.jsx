@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Truck, CheckCircle2, Loader2, Lock } from 'lucide-react'
 import { loadStripe } from '@stripe/stripe-js'
@@ -49,8 +49,14 @@ function CheckoutContent() {
     address: '',
     city:    '',
     country: 'Pakistan',
-    zip:     '',
+    postalCode: '',
   })
+
+  useEffect(() => {
+    if (status !== 'loading' && !user) {
+      navigate('/login?redirect=/checkout')
+    }
+  }, [user, status, navigate])
   const [paymentMethod, setPaymentMethod] = useState('COD')
 
   if (!items.length && !orderId) {
@@ -111,7 +117,7 @@ function CheckoutContent() {
                 line1:       shipping.address,
                 city:        shipping.city,
                 country:     shipping.country,
-                postal_code: shipping.zip,
+                postal_code: shipping.postalCode,
               },
             },
           },
@@ -160,7 +166,7 @@ function CheckoutContent() {
         <div className="lg:col-span-2">
 
           {/* Step 0: Shipping */}
-          {step === 0 && (
+          <div className={step === 0 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm flex items-center gap-2">
                 <Truck size={20} className="text-navy" />Shipping Address
@@ -170,10 +176,10 @@ function CheckoutContent() {
                   { label: 'Full Name',       key: 'name',    type: 'text',  span: true  },
                   { label: 'Email',           key: 'email',   type: 'email', span: true  },
                   { label: 'Phone',           key: 'phone',   type: 'tel',   span: false },
-                  { label: 'ZIP Code',        key: 'zip',     type: 'text',  span: false },
-                  { label: 'Street Address',  key: 'address', type: 'text',  span: true  },
-                  { label: 'City',            key: 'city',    type: 'text',  span: false },
-                  { label: 'Country',         key: 'country', type: 'text',  span: false },
+                  { label: 'ZIP Code',        key: 'postalCode', type: 'text',  span: false },
+                  { label: 'Street Address',  key: 'address',    type: 'text',  span: true  },
+                  { label: 'City',            key: 'city',       type: 'text',  span: false },
+                  { label: 'Country',         key: 'country',    type: 'text',  span: false },
                 ].map(f => (
                   <div key={f.key} className={f.span ? 'sm:col-span-2' : ''}>
                     <label className="text-label-md text-ink-muted block mb-1.5">{f.label}</label>
@@ -187,12 +193,22 @@ function CheckoutContent() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setStep(1)} className="btn-primary">Continue to Payment</button>
+              <button
+                onClick={() => {
+                  const required = ['name', 'email', 'address', 'city', 'postalCode']
+                  const missing = required.filter(k => !shipping[k])
+                  if (missing.length) return alert(`Please fill in all required fields: ${missing.join(', ')}`)
+                  setStep(1)
+                }}
+                className="btn-primary"
+              >
+                Continue to Payment
+              </button>
             </div>
-          )}
+          </div>
 
           {/* Step 1: Payment */}
-          {step === 1 && (
+          <div className={step === 1 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm flex items-center gap-2">
                 <CreditCard size={20} className="text-navy" />Payment Method
@@ -255,17 +271,17 @@ function CheckoutContent() {
                 <button onClick={() => setStep(2)} className="btn-primary flex-1">Review Order</button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Step 2: Review */}
-          {step === 2 && (
+          <div className={step === 2 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm">Review Your Order</h2>
 
               <div className="space-y-1 text-body-sm">
                 <h4 className="font-semibold text-ink">Shipping to</h4>
                 <p className="text-ink-muted">{shipping.name} · {shipping.phone}</p>
-                <p className="text-ink-muted">{shipping.address}, {shipping.city}, {shipping.country} {shipping.zip}</p>
+                <p className="text-ink-muted">{shipping.address}, {shipping.city}, {shipping.country} {shipping.postalCode}</p>
               </div>
 
               <div className="space-y-1 text-body-sm">
@@ -300,7 +316,7 @@ function CheckoutContent() {
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Order summary sidebar */}

@@ -52,15 +52,14 @@ export default function ProductDetail() {
     ? product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length : 0
 
   const handleAddToCart = () => {
-    for (let i = 0; i < qty; i++) {
-      addItem({
-        productId: product._id,
-        name:  product.name,
-        price: Number(product.price),
-        image: images[0],
-        slug:  product.slug,
-      })
-    }
+    addItem({
+      productId: product._id ?? product.id,
+      name:  product.name,
+      price: Number(product.price),
+      image: images[0],
+      slug:  product.slug,
+      quantity: qty,
+    })
     openDrawer()
   }
 
