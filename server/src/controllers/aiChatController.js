@@ -28,6 +28,8 @@ exports.chat = async (req, res) => {
       GUIDELINES:
       - Be helpful, professional, and concise.
       - Use tools whenever a user asks to search, view details, add to cart, or manage products/orders.
+      - IMPORTANT: Do NOT invent tools. Only use the ones provided.
+      - IMPORTANT: Do NOT output XML tags like <function=...> or pseudo-code in your response. The system handles tool calling automatically via the API.
       - If you search for products, summarize the results and provide their IDs if needed.
       - For "navigate_to", use it when the user wants to see a specific page like /cart, /orders, or a product page.
       - For "add_to_cart", notify the user that you've added it (frontend will handle the actual state update via the tool command).
@@ -84,6 +86,25 @@ exports.chat = async (req, res) => {
 
             case 'navigate_to':
               result = JSON.stringify({ success: true, path: args.path });
+              break;
+
+            case 'get_order_status':
+              const orderFilter = { user: req.user._id };
+              if (args.orderId) orderFilter._id = args.orderId;
+              const userOrders = await Order.find(orderFilter).sort({ createdAt: -1 }).limit(1).populate('items.product', 'name');
+              if (userOrders.length === 0) {
+                result = JSON.stringify({ error: 'No orders found' });
+              } else {
+                const order = userOrders[0];
+                result = JSON.stringify({
+                  orderId: order._id,
+                  status: order.status,
+                  total: order.total,
+                  items: order.items.map(i => i.name),
+                  createdAt: order.createdAt,
+                  isPaid: order.isPaid
+                });
+              }
               break;
 
             case 'update_stock':
@@ -143,6 +164,19 @@ exports.chat = async (req, res) => {
               }
               break;
 
+            case 'update_product_status':
+              if (userRole !== 'seller' && userRole !== 'admin') {
+                result = 'Error: Unauthorized';
+              } else {
+                const updatedStatus = await Product.findOneAndUpdate(
+                  { _id: args.productId, seller: req.user._id },
+                  { isActive: args.status !== 'Discontinued' },
+                  { new: true }
+                );
+                result = JSON.stringify(updatedStatus || { error: 'Product not found or not owned by you' });
+              }
+              break;
+
             default:
               result = 'Unknown tool';
           }
@@ -166,7 +200,8 @@ exports.chat = async (req, res) => {
 
       return res.json({
         message: finalResponse.choices[0].message.content,
-        toolCalls: toolCalls // Frontend uses this to trigger UI actions (nav, cart update)
+        toolCalls: toolCalls,
+        toolResults: toolResults // Added this to send data back to frontend
       });
     }
 

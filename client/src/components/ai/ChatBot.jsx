@@ -49,7 +49,13 @@ const ChatBot = () => {
       const history = messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
       const response = await sendChat([...history, userMessage]);
       
-      setMessages(prev => [...prev, { role: 'assistant', content: response.message }]);
+      const assistantMessage = { 
+        role: 'assistant', 
+        content: response.message,
+        toolResults: response.toolResults 
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
 
       // Handle Tool Commands (Navigation, Cart, etc.)
       if (response.toolCalls) {
@@ -83,6 +89,76 @@ const ChatBot = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const renderToolResult = (m) => {
+    if (!m.toolResults) return null;
+
+    return m.toolResults.map((tool, idx) => {
+      const data = JSON.parse(tool.content);
+      
+      if (tool.name === 'search_products' && Array.isArray(data)) {
+        return (
+          <div key={idx} className="mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {data.map((product) => (
+              <div key={product._id} className="min-w-[160px] bg-white rounded-lg border border-border p-2 shadow-sm flex flex-col gap-1">
+                <img src={product.images?.[0] || '/no-photo.jpg'} alt={product.name} className="h-20 w-full object-contain bg-gray-50 rounded" />
+                <p className="text-[11px] font-semibold line-clamp-1">{product.name}</p>
+                <p className="text-[10px] text-orange font-bold">${product.price}</p>
+                <div className="flex gap-1 mt-auto">
+                   <button 
+                    onClick={() => navigate(`/products/${product.slug}`)}
+                    className="flex-1 py-1 text-[9px] bg-navy text-white rounded hover:bg-navy-light"
+                   >
+                     View
+                   </button>
+                   <button 
+                    onClick={() => {
+                      dispatch(addItem({
+                        productId: product._id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.images?.[0] || '',
+                        quantity: 1
+                      }));
+                      dispatch(openDrawer());
+                    }}
+                    className="p-1 bg-orange text-navy rounded hover:bg-orange-hover"
+                   >
+                     <ShoppingCart size={12} />
+                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      if (tool.name === 'get_order_status' && data.orderId) {
+        return (
+          <div key={idx} className="mt-3 bg-white rounded-lg border-l-4 border-orange p-3 shadow-sm text-[11px]">
+            <div className="flex justify-between items-start mb-2">
+              <p className="font-bold">Order #{data.orderId.slice(-6).toUpperCase()}</p>
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                data.status === 'Delivered' ? 'bg-green-100 text-green-700' : 'bg-orange/10 text-orange'
+              }`}>
+                {data.status}
+              </span>
+            </div>
+            <p className="text-gray-500 mb-1">Total: ${data.total}</p>
+            <p className="line-clamp-1 italic">Items: {data.items.join(', ')}</p>
+            <button 
+              onClick={() => navigate('/profile')}
+              className="mt-2 w-full py-1.5 border border-border rounded hover:bg-gray-50 transition-colors"
+            >
+              View Order Details
+            </button>
+          </div>
+        );
+      }
+
+      return null;
+    });
   };
 
   const clearChat = () => {
@@ -137,19 +213,22 @@ const ChatBot = () => {
             >
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-2 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
-                      m.role === 'user' ? 'bg-orange text-navy' : 'bg-navy text-orange'
-                    }`}>
-                      {m.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                  <div className={`flex flex-col gap-1 max-w-[85%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                        m.role === 'user' ? 'bg-orange text-navy' : 'bg-navy text-orange'
+                      }`}>
+                        {m.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                      </div>
+                      <div className={`p-3 rounded-xl text-sm leading-relaxed ${
+                        m.role === 'user' 
+                          ? 'bg-navy text-white rounded-tr-none' 
+                          : 'bg-white text-ink border border-border rounded-tl-none shadow-sm'
+                      }`}>
+                        {m.content}
+                      </div>
                     </div>
-                    <div className={`p-3 rounded-xl text-sm leading-relaxed ${
-                      m.role === 'user' 
-                        ? 'bg-navy text-white rounded-tr-none' 
-                        : 'bg-white text-ink border border-border rounded-tl-none shadow-sm'
-                    }`}>
-                      {m.content}
-                    </div>
+                    {renderToolResult(m)}
                   </div>
                 </div>
               ))}

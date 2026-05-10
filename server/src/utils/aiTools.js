@@ -61,6 +61,19 @@ exports.getToolsForRole = (role) => {
           required: ['path']
         }
       }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_order_status',
+        description: 'Track the status of the user\'s orders',
+        parameters: {
+          type: 'object',
+          properties: {
+            orderId: { type: 'string', description: 'The MongoDB ID of the order (optional, defaults to latest)' }
+          }
+        }
+      }
     }
   ];
 
@@ -120,6 +133,21 @@ exports.getToolsForRole = (role) => {
             status: { type: 'string', enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered'] }
           },
           required: ['orderId', 'status']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'update_product_status',
+        description: 'Update the status or availability of a product',
+        parameters: {
+          type: 'object',
+          properties: {
+            productId: { type: 'string' },
+            status: { type: 'string', description: 'e.g. In Stock, Out of Stock, Discontinued' }
+          },
+          required: ['productId', 'status']
         }
       }
     }
