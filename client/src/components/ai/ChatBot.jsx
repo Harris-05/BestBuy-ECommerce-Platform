@@ -1,172 +1,210 @@
-﻿import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, X, Send, Trash2, Bot } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle, X, Send, Loader2, User, Bot, ShoppingCart, Trash2 } from 'lucide-react';
+import { sendChat } from '../../services/aiService';
+import { addItem, openDrawer } from '../../store/cartSlice';
+import api from '../../services/api';
 
-const STORAGE_KEY = 'shopbot_messages'
+const STORAGE_KEY = 'bestbuy_chat_history';
+const WELCOME = { role: 'assistant', content: 'Hi! I\'m your BestBuy Assistant. How can I help you shop or manage your business today?' };
 
-const WELCOME = { role: 'assistant', content: 'Hi! I\'m ShopBot. Ask me anything about products, deals, or recommendations!' }
-
-export default function ChatBot() {
-  const [open, setOpen]   = useState(false)
+const ChatBot = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') ?? [WELCOME] }
-    catch { return [WELCOME] }
-  })
-  const [input,   setInput]   = useState('')
-  const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [WELCOME];
+    } catch {
+      return [WELCOME];
+    }
+  });
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef(null);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return
-    const userMsg = { role: 'user', content: input.trim() }
-    const updated = [...messages, userMsg]
-    setMessages(updated)
-    setInput('')
-    setLoading(true)
+  const handleSend = async (e) => {
+    if (e) e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
 
     try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        body: JSON.stringify({ messages: updated, query: userMsg.content }),
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      })
+      // Send history + new message. Limit context to last 10
+      const history = messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
+      const response = await sendChat([...history, userMessage]);
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: response.message }]);
 
-      if (!res.ok || !res.body) throw new Error('Failed')
-
-      const reader  = res.body.getReader()
-      const decoder = new TextDecoder()
-      let content   = ''
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }])
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        content += decoder.decode(value, { stream: true })
-        setMessages(prev => [...prev.slice(0, -1), { role: 'assistant', content }])
+      // Handle Tool Commands (Navigation, Cart, etc.)
+      if (response.toolCalls) {
+        for (const call of response.toolCalls) {
+          const args = JSON.parse(call.function.arguments);
+          
+          if (call.function.name === 'navigate_to') {
+            navigate(args.path);
+          }
+          
+          if (call.function.name === 'add_to_cart') {
+            try {
+              const { data: product } = await api.get(`/products/${args.productId}`);
+              dispatch(addItem({
+                productId: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.images?.[0] || '',
+                quantity: args.quantity || 1
+              }));
+              dispatch(openDrawer());
+            } catch (err) {
+              console.error('AI Add to Cart failed:', err);
+            }
+          }
+        }
       }
-    } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I\'m having trouble connecting. Please try again.' }])
+    } catch (error) {
+      console.error('Chat Error:', error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'I\'m having trouble connecting right now. Please try again later.' }]);
     } finally {
-      setLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const clearChat = () => setMessages([WELCOME])
+  const clearChat = () => {
+    setMessages([WELCOME]);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  if (!user) return null;
 
   return (
-    <>
-      {/* FAB toggle */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setOpen(o => !o)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-navy shadow-modal flex items-center justify-center text-white"
-        aria-label={open ? 'Close ShopBot' : 'Open ShopBot'}
-      >
-        <AnimatePresence mode="wait">
-          {open
-            ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}><X size={22} /></motion.span>
-            : <motion.span key="bot" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}><MessageCircle size={22} /></motion.span>
-          }
-        </AnimatePresence>
-      </motion.button>
-
-      {/* Chat window */}
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
-            className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 bg-white rounded-xl shadow-modal border border-border flex flex-col overflow-hidden"
-            style={{ height: 480 }}
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="mb-4 w-80 sm:w-96 h-[500px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-border"
           >
             {/* Header */}
-            <div className="bg-navy text-white px-4 py-3 flex items-center justify-between">
+            <div className="bg-navy text-white p-4 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <Bot size={18} className="text-orange" />
+                <div className="bg-orange p-1.5 rounded-lg text-navy">
+                  <Bot size={20} />
+                </div>
                 <div>
-                  <p className="font-headline font-semibold text-body-sm">ShopBot</p>
-                  <p className="text-[11px] text-gray-300">AI Shopping Assistant</p>
+                  <h3 className="font-headline font-semibold text-sm">BestBuy Assistant</h3>
+                  <p className="text-[10px] text-gray-300">Powered by AI</p>
                 </div>
               </div>
-              <button
-                onClick={clearChat}
-                className="p-1.5 rounded hover:bg-navy-light transition-colors"
-                title="Clear chat"
-              >
-                <Trash2 size={15} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={clearChat}
+                  className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                  title="Clear Chat"
+                >
+                  <Trash2 size={16} />
+                </button>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-surface-section">
+            <div 
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto p-4 space-y-4 bg-surface-section"
+            >
               {messages.map((m, i) => (
-                <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {m.role === 'assistant' && (
-                    <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Bot size={13} className="text-orange" />
+                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex gap-2 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                      m.role === 'user' ? 'bg-orange text-navy' : 'bg-navy text-orange'
+                    }`}>
+                      {m.role === 'user' ? <User size={16} /> : <Bot size={16} />}
                     </div>
-                  )}
-                  <div
-                    className={`max-w-[80%] px-3 py-2 rounded-lg text-body-sm leading-relaxed ${
-                      m.role === 'user'
-                        ? 'bg-navy text-white rounded-br-sm'
-                        : 'bg-white text-ink border border-border rounded-bl-sm shadow-card'
-                    }`}
-                  >
-                    {m.content}
+                    <div className={`p-3 rounded-xl text-sm leading-relaxed ${
+                      m.role === 'user' 
+                        ? 'bg-navy text-white rounded-tr-none' 
+                        : 'bg-white text-ink border border-border rounded-tl-none shadow-sm'
+                    }`}>
+                      {m.content}
+                    </div>
                   </div>
                 </div>
               ))}
-
-              {/* Typing indicator */}
-              {loading && (
-                <div className="flex gap-2 justify-start">
-                  <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
-                    <Bot size={13} className="text-orange" />
-                  </div>
-                  <div className="bg-white border border-border rounded-lg rounded-bl-sm px-3 py-2 flex gap-1">
-                    {[0, 1, 2].map(i => (
-                      <span
-                        key={i}
-                        className="w-2 h-2 rounded-full bg-ink-faint animate-bounce"
-                        style={{ animationDelay: `${i * 0.15}s` }}
-                      />
-                    ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex gap-2 max-w-[85%]">
+                    <div className="w-8 h-8 rounded-full bg-navy text-orange shadow-sm flex items-center justify-center">
+                      <Bot size={16} />
+                    </div>
+                    <div className="bg-white p-3 rounded-xl rounded-tl-none border border-border shadow-sm">
+                      <Loader2 size={16} className="animate-spin text-orange" />
+                    </div>
                   </div>
                 </div>
               )}
-              <div ref={bottomRef} />
             </div>
 
             {/* Input */}
-            <div className="px-3 py-3 border-t border-border bg-white flex gap-2">
+            <form onSubmit={handleSend} className="p-3 bg-white border-t border-border flex gap-2">
               <input
+                type="text"
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-                placeholder="Ask ShopBot anything…"
-                className="flex-1 input py-2 text-body-sm"
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                placeholder="Ask anything..."
+                className="flex-1 input py-2 text-sm"
               />
               <button
-                onClick={send}
-                disabled={loading || !input.trim()}
-                className="btn-primary px-3 py-2 disabled:opacity-50"
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="btn-primary p-2 h-10 w-10 flex items-center justify-center"
               >
-                <Send size={16} />
+                <Send size={18} />
               </button>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
-  )
-}
+
+      {/* FAB */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-colors ${
+          isOpen ? 'bg-white text-navy border border-border' : 'bg-navy text-white'
+        }`}
+      >
+        {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
+        {!isOpen && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange rounded-full border-2 border-white animate-pulse"></span>
+        )}
+      </motion.button>
+    </div>
+  );
+};
+
+export default ChatBot;
