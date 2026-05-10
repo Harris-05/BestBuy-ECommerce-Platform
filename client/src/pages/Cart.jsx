@@ -9,7 +9,7 @@ export default function Cart() {
 
   if (!items.length) {
     return (
-      <div className="container-content py-20 text-center">
+      <div className="container-content py-16 sm:py-20 text-center">
         <ShoppingBag size={64} className="mx-auto text-ink-faint mb-4" />
         <h2 className="font-headline font-bold text-headline-md text-ink mb-2">Your cart is empty</h2>
         <p className="text-body-md text-ink-muted mb-6">Browse our products and add items to your cart.</p>
@@ -19,21 +19,21 @@ export default function Cart() {
   }
 
   return (
-    <div className="container-content py-8">
+    <div className="container-content py-6 sm:py-8">
       <h1 className="font-headline font-bold text-headline-md text-ink mb-6">Shopping Cart</h1>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Cart items */}
         <div className="lg:col-span-2 space-y-3">
           {items.map(item => (
-            <div key={item.productId} className="card p-4 flex gap-4">
+            <div key={item.productId} className="card p-4 flex flex-col sm:flex-row gap-4">
               <Link to={`/products/${item.slug}`}>
-                <img src={resolveImage(item.image)} alt={item.name} className="w-24 h-24 object-cover rounded-md border border-border" />
+                <img src={resolveImage(item.image)} alt={item.name} className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-md border border-border" />
               </Link>
               <div className="flex-1 min-w-0">
                 <Link to={`/products/${item.slug}`} className="font-medium text-body-md text-ink hover:text-navy line-clamp-2">{item.name}</Link>
                 <p className="text-body-sm text-green-600 mt-0.5">In Stock</p>
-                <div className="flex items-center gap-3 mt-3">
+                <div className="flex flex-wrap items-center gap-3 mt-3">
                   <div className="flex items-center border border-border rounded overflow-hidden">
                     <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="px-2.5 py-1 hover:bg-surface-section text-ink-muted text-lg leading-none">−</button>
                     <span className="px-3 py-1 text-body-sm font-medium">{item.quantity}</span>
@@ -60,7 +60,7 @@ export default function Cart() {
 
         {/* Order summary */}
         <div className="lg:col-span-1">
-          <div className="card p-6 sticky top-24 space-y-4">
+          <div className="card p-5 sm:p-6 sticky top-24 space-y-4">
             <h2 className="font-headline font-semibold text-headline-sm text-ink">Order Summary</h2>
             <div className="space-y-2 text-body-sm">
               <div className="flex justify-between text-ink-muted"><span>Subtotal ({items.length} items)</span><span>${total.toFixed(2)}</span></div>

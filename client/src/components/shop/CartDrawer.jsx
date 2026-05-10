@@ -22,7 +22,7 @@ export default function CartDrawer() {
 
           {/* Drawer panel */}
           <motion.aside
-            className="fixed right-0 top-0 h-full w-full max-w-sm bg-white z-50 shadow-modal flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-full sm:max-w-sm bg-white z-50 shadow-modal flex flex-col"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

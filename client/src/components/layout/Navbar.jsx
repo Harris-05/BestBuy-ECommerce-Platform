@@ -30,11 +30,11 @@ export default function Navbar() {
 
       {/* ── Main navbar ── */}
       <header className="sticky top-0 z-40 bg-navy text-white shadow-md">
-        <div className="container-content flex items-center gap-4 py-2.5">
+        <div className="container-content flex items-center gap-3 py-2.5">
 
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <span className="font-headline text-xl font-bold tracking-tight">
+            <span className="font-headline text-lg sm:text-xl font-bold tracking-tight whitespace-nowrap">
               bestbuy<span className="text-orange">Market</span>
             </span>
           </Link>
@@ -48,13 +48,13 @@ export default function Navbar() {
           </div>
 
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="flex flex-1 max-w-2xl rounded overflow-hidden">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 min-w-0 max-w-2xl rounded overflow-hidden">
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search products, brands and more…"
-              className="flex-1 px-4 py-2 text-ink text-body-sm focus:outline-none bg-white placeholder-ink-faint"
+              className="flex-1 min-w-0 px-4 py-2 text-ink text-body-sm focus:outline-none bg-white placeholder-ink-faint"
             />
             <button
               type="submit"
@@ -70,9 +70,9 @@ export default function Navbar() {
             {/* Account dropdown */}
             {isAuthenticated ? (
               <div className="group relative">
-                <button className="flex flex-col items-start px-3 py-1 hover:ring-1 hover:ring-white rounded text-left">
-                  <span className="text-[11px] text-gray-300">Hello, {user?.name?.split(' ')[0]}</span>
-                  <span className="flex items-center gap-0.5 text-label-sm font-semibold">
+                <button className="flex flex-col items-start px-2 sm:px-3 py-1 hover:ring-1 hover:ring-white rounded text-left max-w-[110px] sm:max-w-none">
+                  <span className="hidden sm:block text-[11px] text-gray-300">Hello, {user?.name?.split(' ')[0]}</span>
+                  <span className="flex items-center gap-0.5 text-label-sm font-semibold whitespace-nowrap">
                     Account <ChevronDown size={12} />
                   </span>
                 </button>
@@ -89,9 +89,9 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <Link to="/login" className="flex flex-col items-start px-3 py-1 hover:ring-1 hover:ring-white rounded">
-                <span className="text-[11px] text-gray-300">Hello, sign in</span>
-                <span className="flex items-center gap-0.5 text-label-sm font-semibold">
+              <Link to="/login" className="flex flex-col items-start px-2 sm:px-3 py-1 hover:ring-1 hover:ring-white rounded max-w-[110px] sm:max-w-none">
+                <span className="hidden sm:block text-[11px] text-gray-300">Hello, sign in</span>
+                <span className="flex items-center gap-0.5 text-label-sm font-semibold whitespace-nowrap">
                   Account <ChevronDown size={12} />
                 </span>
               </Link>
@@ -108,7 +108,7 @@ export default function Navbar() {
             {/* Cart */}
             <button
               onClick={openDrawer}
-              className="flex items-center gap-1.5 px-3 py-1 hover:ring-1 hover:ring-white rounded relative"
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1 hover:ring-1 hover:ring-white rounded relative"
             >
               <span className="relative">
                 <ShoppingCart size={22} />
@@ -118,7 +118,7 @@ export default function Navbar() {
                   </span>
                 )}
               </span>
-              <span className="hidden md:inline text-label-sm font-semibold self-end pb-0.5">Cart</span>
+              <span className="hidden lg:inline text-label-sm font-semibold self-end pb-0.5">Cart</span>
             </button>
 
             {/* Mobile menu toggle */}
@@ -154,7 +154,7 @@ export default function Navbar() {
 
       {/* ── Mobile menu ── */}
       {mobileOpen && (
-        <div className="md:hidden bg-navy-deep text-white px-4 py-4 space-y-3 text-body-sm z-30 relative">
+        <div className="md:hidden bg-navy-deep text-white px-4 py-4 space-y-3 text-body-sm z-30 relative max-h-[calc(100vh-120px)] overflow-y-auto">
           <form onSubmit={handleSearch} className="flex rounded overflow-hidden mb-4">
             <input
               type="text"

@@ -25,9 +25,9 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-surface-section px-4">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-surface-section px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8">
           <Link to="/login" className="inline-flex items-center text-label-sm text-ink-muted hover:text-navy mb-6 transition-colors">
             <ArrowLeft size={14} className="mr-1" /> Back to Login
           </Link>

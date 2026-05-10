@@ -64,18 +64,18 @@ function HeroCarousel() {
   const slide = SLIDES[idx]
 
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-r ${slide.bg} text-white`} style={{ minHeight: 380 }}>
+    <div className={`relative overflow-hidden bg-gradient-to-r ${slide.bg} text-white min-h-[320px] sm:min-h-[380px]`}>
       {/* Background image */}
       <img
         src={slide.img}
         alt=""
         className="absolute inset-0 w-full h-full object-cover opacity-20 transition-opacity duration-700"
       />
-      <div className="relative container-content py-16 lg:py-24 flex flex-col gap-5 max-w-xl">
+      <div className="relative container-content py-12 sm:py-16 lg:py-24 flex flex-col items-center md:items-start gap-4 sm:gap-5 max-w-lg sm:max-w-xl text-center md:text-left">
         <span className="badge-orange w-fit text-label-sm">Limited Time Offer</span>
-        <h1 className="font-headline text-headline-xl leading-tight">{slide.title}</h1>
-        <p className="text-body-lg text-gray-200">{slide.subtitle}</p>
-        <Link to={slide.to} className="btn-primary w-fit text-body-md px-7 py-3">
+        <h1 className="font-headline text-headline-lg sm:text-headline-xl leading-tight">{slide.title}</h1>
+        <p className="text-body-md sm:text-body-lg text-gray-200">{slide.subtitle}</p>
+        <Link to={slide.to} className="btn-primary w-fit text-body-md px-5 sm:px-7 py-3">
           {slide.cta} <ArrowRight size={18} />
         </Link>
       </div>
@@ -83,19 +83,19 @@ function HeroCarousel() {
       {/* Arrows */}
       <button
         onClick={() => setIdx(i => (i - 1 + SLIDES.length) % SLIDES.length)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+        className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
       >
         <ChevronLeft size={20} />
       </button>
       <button
         onClick={() => setIdx(i => (i + 1) % SLIDES.length)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+        className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
       >
         <ChevronRight size={20} />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {SLIDES.map((_, i) => (
           <button key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full transition-colors ${i === idx ? 'bg-orange' : 'bg-white/40'}`} />
         ))}
@@ -122,7 +122,7 @@ export default function Home() {
       {/* Trust bar */}
       <div className="bg-white border-b border-border">
         <div className="container-content py-5">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {TRUST_ITEMS.map(({ icon: Icon, label, sub }) => (
               <div key={label} className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-orange-light flex-shrink-0">
@@ -140,7 +140,7 @@ export default function Home() {
 
       {/* Category grid */}
       <section className="container-content py-10">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
           <h2 className="font-headline font-bold text-headline-md text-ink">Shop by Category</h2>
           <Link to="/products" className="text-body-sm text-navy hover:underline flex items-center gap-1">
             View all <ArrowRight size={14} />
@@ -162,13 +162,13 @@ export default function Home() {
 
       {/* Promo banner */}
       <div className="bg-navy text-white py-12">
-        <div className="container-content flex flex-col lg:flex-row items-center gap-6 justify-between">
+        <div className="container-content flex flex-col lg:flex-row items-center gap-6 justify-between text-center lg:text-left">
           <div>
             <p className="text-label-sm text-orange uppercase tracking-widest mb-1">Flash Sale</p>
             <h2 className="font-headline font-bold text-headline-lg">Up to 70% Off Today Only</h2>
             <p className="text-body-md text-gray-300 mt-1">Limited stock — don't miss out on these incredible deals.</p>
           </div>
-          <Link to="/products?sort=best_seller" className="btn-primary whitespace-nowrap px-8 py-3 text-body-md">
+          <Link to="/products?sort=best_seller" className="btn-primary w-full sm:w-auto justify-center whitespace-nowrap px-8 py-3 text-body-md">
             Shop the Sale <ArrowRight size={18} />
           </Link>
         </div>
@@ -211,9 +211,9 @@ export default function Home() {
         <div className="container-content max-w-2xl text-center mx-auto">
           <h2 className="font-headline font-bold text-headline-md mb-2">Stay in the Loop</h2>
           <p className="text-body-md text-gray-300 mb-6">Get exclusive deals, early access to sales, and new arrivals delivered to your inbox.</p>
-          <form onSubmit={e => e.preventDefault()} className="flex gap-2 max-w-md mx-auto">
+          <form onSubmit={e => e.preventDefault()} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
             <input type="email" placeholder="Enter your email" className="input flex-1 bg-navy-light border-navy-light text-white placeholder-gray-400 focus:border-orange" />
-            <button type="submit" className="btn-primary whitespace-nowrap">Subscribe</button>
+            <button type="submit" className="btn-primary w-full sm:w-auto whitespace-nowrap">Subscribe</button>
           </form>
         </div>
       </section>

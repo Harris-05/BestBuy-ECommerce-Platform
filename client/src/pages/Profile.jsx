@@ -10,14 +10,14 @@ const PIPELINE = ['Pending', 'Confirmed', 'Shipped', 'Delivered']
 function OrderPipeline({ status }) {
   const step = PIPELINE.indexOf(status)
   return (
-    <div className="flex items-center gap-0 w-full">
+    <div className="flex items-center gap-0 w-full overflow-x-auto pb-2 sm:pb-0">
       {PIPELINE.map((label, i) => (
-        <div key={label} className="flex items-center flex-1 last:flex-none">
-          <div className="flex flex-col items-center gap-1">
+        <div key={label} className="flex items-center flex-1 min-w-[88px] last:flex-none">
+          <div className="flex flex-col items-center gap-1 min-w-[72px]">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-label-sm font-bold border-2 transition-colors ${i <= step ? 'border-navy bg-navy text-white' : 'border-border bg-white text-ink-faint'}`}>
               {i < step ? '✓' : i + 1}
             </div>
-            <span className={`text-label-sm whitespace-nowrap ${i <= step ? 'text-navy font-semibold' : 'text-ink-faint'}`}>{label}</span>
+            <span className={`text-label-sm whitespace-nowrap text-center ${i <= step ? 'text-navy font-semibold' : 'text-ink-faint'}`}>{label}</span>
           </div>
           {i < PIPELINE.length - 1 && (
             <div className={`flex-1 h-0.5 mx-2 transition-colors ${i < step ? 'bg-navy' : 'bg-border'}`} />
@@ -108,12 +108,12 @@ export default function Profile() {
   if (!user) return null
 
   return (
-    <div className="container-content py-8">
-      <div className="grid lg:grid-cols-4 gap-6">
+    <div className="container-content py-6 sm:py-8">
+      <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
 
         {/* Sidebar */}
         <aside className="lg:col-span-1">
-          <div className="card p-5 space-y-4">
+          <div className="card p-4 sm:p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-navy text-white flex items-center justify-center font-headline font-bold text-headline-sm">
                 {user.name?.[0]?.toUpperCase() ?? 'U'}
@@ -184,7 +184,7 @@ export default function Profile() {
             <>
               <h2 className="font-headline font-bold text-headline-md text-ink">Account Information</h2>
               <div className="card p-6 space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-label-md text-ink-muted block mb-1.5">Full Name</label>
                     <input defaultValue={user.name} className="input" />

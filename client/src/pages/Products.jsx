@@ -46,9 +46,9 @@ export default function Products() {
   const loading = status === 'loading'
 
   return (
-    <div className="container-content py-6">
+    <div className="container-content py-4 sm:py-6">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h1 className="font-headline font-bold text-headline-md text-ink">
             {filters.category ? filters.category : 'All Products'}
@@ -58,7 +58,7 @@ export default function Products() {
         {/* Mobile filter toggle */}
         <button
           onClick={() => setShowMobileFilter(o => !o)}
-          className="lg:hidden btn-secondary gap-2 text-body-sm py-2"
+          className="lg:hidden btn-secondary w-full sm:w-auto justify-center gap-2 text-body-sm py-2"
         >
           <SlidersHorizontal size={16} />Filters
         </button>
@@ -79,7 +79,7 @@ export default function Products() {
         </div>
       )}
 
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* Sidebar — desktop */}
         <div className="hidden lg:block w-56 flex-shrink-0">
           <FilterSidebar />
@@ -101,16 +101,16 @@ export default function Products() {
         {/* Product grid */}
         <div className="flex-1 min-w-0">
           {/* Sort bar */}
-          <div className="flex items-center justify-between mb-4 bg-white border border-border rounded-lg px-4 py-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-border rounded-lg px-4 py-2.5">
             <p className="text-body-sm text-ink-muted hidden sm:block">
               {loading ? 'Loading…' : `Showing 1–${Math.min(20, total)} of ${total}`}
             </p>
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-label-md text-ink-muted">Sort:</span>
               <select
                 value={filters.sort}
                 onChange={e => { const p = new URLSearchParams(searchParams); p.set('sort', e.target.value); p.set('page', '1'); setSearchParams(p) }}
-                className="border-none text-body-sm focus:outline-none cursor-pointer text-ink"
+                className="border-none text-body-sm focus:outline-none cursor-pointer text-ink w-full sm:w-auto"
               >
                 <option value="newest">Newest</option>
                 <option value="price_asc">Price: Low → High</option>
@@ -125,7 +125,7 @@ export default function Products() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
+            <div className="flex flex-wrap justify-center gap-2 mt-8">
               <button
                 onClick={() => { const p = new URLSearchParams(searchParams); p.set('page', String(page - 1)); setSearchParams(p) }}
                 disabled={page <= 1}

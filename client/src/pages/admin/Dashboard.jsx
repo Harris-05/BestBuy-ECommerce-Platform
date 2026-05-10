@@ -76,13 +76,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="container-content py-8">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="container-content py-6 sm:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-navy text-white">
           <Shield size={22} />
         </div>
         <div>
-          <h1 className="font-headline font-bold text-headline-lg text-ink">Admin Dashboard</h1>
+          <h1 className="font-headline font-bold text-headline-md sm:text-headline-lg text-ink">Admin Dashboard</h1>
           <p className="text-body-sm text-ink-muted">Logged in as {user?.name} · Full admin access</p>
         </div>
       </div>
@@ -102,8 +102,8 @@ export default function AdminDashboard() {
 
       {/* Overview */}
       {tab === 'Overview' && (
-        <div className="space-y-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard title="Total Revenue"  value={`$${(stats.revenue ?? 0).toFixed(2)}`}  icon={DollarSign} color="orange" trend={12} />
             <StatsCard title="Total Users"    value={stats.users ?? 0}                        icon={Users}      color="navy"   trend={5} />
             <StatsCard title="Total Products" value={stats.products ?? 0}                     icon={Package}    color="green"  trend={8} />

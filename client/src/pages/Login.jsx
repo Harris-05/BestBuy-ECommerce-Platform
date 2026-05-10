@@ -22,17 +22,17 @@ export default function Login() {
   const loading = status === 'loading'
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-surface-section px-4 py-12">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-surface-section px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
 
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link to="/" className="font-headline text-2xl font-bold text-ink">
+        <div className="text-center mb-6 sm:mb-8">
+          <Link to="/" className="font-headline text-xl sm:text-2xl font-bold text-ink">
             bestbuy<span className="text-orange">Market</span>
           </Link>
         </div>
 
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8">
           <h1 className="font-headline font-bold text-headline-md text-ink mb-1">Sign In</h1>
           <p className="text-body-sm text-ink-muted mb-6">Welcome back! Enter your details to continue.</p>
 

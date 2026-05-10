@@ -35,16 +35,16 @@ export default function Signup() {
   const displayError = formError || error
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-surface-section px-4 py-12">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-surface-section px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
 
-        <div className="text-center mb-8">
-          <Link to="/" className="font-headline text-2xl font-bold text-ink">
+        <div className="text-center mb-6 sm:mb-8">
+          <Link to="/" className="font-headline text-xl sm:text-2xl font-bold text-ink">
             bestbuy<span className="text-orange">Market</span>
           </Link>
         </div>
 
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8">
           <h1 className="font-headline font-bold text-headline-md text-ink mb-1">Create Account</h1>
           <p className="text-body-sm text-ink-muted mb-6">Join millions of shoppers and sellers on BestBuy.</p>
 
@@ -59,8 +59,8 @@ export default function Signup() {
             {/* 3. Added the Account Type Selection UI */}
             <div>
               <label className="text-label-md text-ink-muted block mb-1.5">Account Type</label>
-              <div className="flex gap-3">
-                <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded cursor-pointer transition-colors ${form.role === 'user' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <label className={`flex-1 flex items-center justify-center gap-2 p-2.5 sm:p-3 border rounded cursor-pointer transition-colors ${form.role === 'user' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
                   <input
                     type="radio"
                     name="role"
@@ -73,7 +73,7 @@ export default function Signup() {
                   <span className={`text-body-sm font-medium ${form.role === 'user' ? 'text-orange' : 'text-ink'}`}>Shopper</span>
                 </label>
 
-                <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded cursor-pointer transition-colors ${form.role === 'seller' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
+                <label className={`flex-1 flex items-center justify-center gap-2 p-2.5 sm:p-3 border rounded cursor-pointer transition-colors ${form.role === 'seller' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
                   <input
                     type="radio"
                     name="role"

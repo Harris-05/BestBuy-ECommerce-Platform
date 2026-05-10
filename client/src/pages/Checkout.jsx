@@ -31,7 +31,7 @@ function useStripePromise() {
 
 function CheckoutContent() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, status: authStatus } = useAuth()
   const { items, total, clearCart } = useCart()
   const stripe = useStripe()
   const elements = useElements()
@@ -53,10 +53,10 @@ function CheckoutContent() {
   })
 
   useEffect(() => {
-    if (status !== 'loading' && !user) {
+    if (authStatus !== 'loading' && !user) {
       navigate('/login?redirect=/checkout')
     }
-  }, [user, status, navigate])
+  }, [user, authStatus, navigate])
   const [paymentMethod, setPaymentMethod] = useState('COD')
 
   if (!items.length && !orderId) {
@@ -146,23 +146,23 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="container-content py-8">
+    <div className="container-content py-4 sm:py-8">
       {/* Progress steps */}
-      <div className="flex items-center justify-center gap-0 mb-8">
+      <div className="flex items-center justify-start sm:justify-center gap-0 mb-6 sm:mb-8 overflow-x-auto pb-2">
         {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-label-md transition-colors ${i <= step ? 'bg-navy text-white' : 'bg-surface-section text-ink-muted'}`}>
+          <div key={s} className="flex items-center shrink-0">
+            <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-label-sm sm:text-label-md transition-colors whitespace-nowrap ${i <= step ? 'bg-navy text-white' : 'bg-surface-section text-ink-muted'}`}>
               <span className={`w-5 h-5 rounded-full text-label-sm flex items-center justify-center ${i < step ? 'bg-green-500' : i === step ? 'bg-orange text-navy-deep' : 'bg-white/20'}`}>
                 {i < step ? '✓' : i + 1}
               </span>
               {s}
             </div>
-            {i < STEPS.length - 1 && <div className={`w-8 h-0.5 ${i < step ? 'bg-navy' : 'bg-border'}`} />}
+            {i < STEPS.length - 1 && <div className={`w-6 sm:w-8 h-0.5 ${i < step ? 'bg-navy' : 'bg-border'}`} />}
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2">
 
           {/* Step 0: Shipping */}
@@ -266,9 +266,9 @@ function CheckoutContent() {
                 </label>
               </div>
 
-              <div className="flex gap-3">
-                <button onClick={() => setStep(0)} className="btn-secondary">Back</button>
-                <button onClick={() => setStep(2)} className="btn-primary flex-1">Review Order</button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button onClick={() => setStep(0)} className="btn-secondary w-full sm:w-auto">Back</button>
+                <button onClick={() => setStep(2)} className="btn-primary flex-1 justify-center">Review Order</button>
               </div>
             </div>
           </div>
@@ -306,8 +306,8 @@ function CheckoutContent() {
                 <p className="text-red-500 text-label-sm bg-red-50 border border-red-200 rounded px-3 py-2">{cardError}</p>
               )}
 
-              <div className="flex gap-3">
-                <button onClick={() => setStep(1)} className="btn-secondary">Back</button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button onClick={() => setStep(1)} className="btn-secondary w-full sm:w-auto">Back</button>
                 <button onClick={handlePlaceOrder} disabled={loading} className="btn-primary flex-1 justify-center">
                   {loading
                     ? <><Loader2 size={16} className="animate-spin" />Processing…</>

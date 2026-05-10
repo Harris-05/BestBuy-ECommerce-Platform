@@ -133,10 +133,10 @@ export default function SellerDashboard() {
   }
 
   return (
-    <div className="container-content py-8">
+    <div className="container-content py-6 sm:py-8">
       {/* Live order alert banner */}
       {liveAlert && (
-        <div className="fixed top-4 right-4 z-50 max-w-sm w-full bg-navy text-white rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right">
+        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-50 sm:max-w-sm w-auto bg-navy text-white rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right">
           <div className="w-9 h-9 rounded-full bg-orange/20 flex items-center justify-center shrink-0">
             <Bell size={18} className="text-orange" />
           </div>
@@ -150,12 +150,12 @@ export default function SellerDashboard() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-headline font-bold text-headline-lg text-ink">Seller Dashboard</h1>
+          <h1 className="font-headline font-bold text-headline-md sm:text-headline-lg text-ink">Seller Dashboard</h1>
           <p className="text-body-sm text-ink-muted">Welcome back, {user?.name}</p>
         </div>
-        <button onClick={() => { setEditing(null); setShowForm(true) }} className="btn-primary gap-2">
+        <button onClick={() => { setEditing(null); setShowForm(true) }} className="btn-primary w-full sm:w-auto gap-2 justify-center">
           <Plus size={16} />New Product
         </button>
       </div>
@@ -194,7 +194,7 @@ export default function SellerDashboard() {
           {/* Overview */}
           {tab === 'Overview' && (
             <div className="space-y-6">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatsCard title="Total Revenue"   value={`$${stats.revenue.toFixed(2)}`}    icon={DollarSign} color="orange" />
                 <StatsCard title="Total Orders"    value={stats.orders}                       icon={ShoppingBag} color="navy" />
                 <StatsCard title="Active Products" value={stats.products}                     icon={Package}    color="green" />

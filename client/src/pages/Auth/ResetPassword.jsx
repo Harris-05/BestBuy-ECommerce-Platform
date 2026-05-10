@@ -31,9 +31,9 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-surface-section px-4">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-surface-section px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8">
           <h1 className="font-headline font-bold text-headline-md text-ink mb-1">Set New Password</h1>
           <p className="text-body-sm text-ink-muted mb-6">Create a strong password for your account.</p>
 

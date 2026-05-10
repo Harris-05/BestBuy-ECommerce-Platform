@@ -67,9 +67,9 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="container-content py-6">
+    <div className="container-content py-4 sm:py-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-label-sm text-ink-muted mb-5">
+      <nav className="flex items-center gap-2 text-label-sm text-ink-muted mb-5 overflow-x-auto whitespace-nowrap pb-1">
         <Link to="/" className="hover:text-navy transition-colors">Home</Link>
         <span>/</span>
         <Link to="/products" className="hover:text-navy transition-colors">Products</Link>
@@ -84,7 +84,7 @@ export default function ProductDetail() {
       </nav>
 
       {/* Main product section */}
-      <div className="grid lg:grid-cols-2 gap-10">
+      <div className="grid lg:grid-cols-2 gap-6 lg:gap-10">
 
         {/* Images */}
         <div className="space-y-3">
@@ -92,7 +92,7 @@ export default function ProductDetail() {
             <img
               src={images[activeImg]}
               alt={product.name}
-              className="w-full h-96 object-cover"
+              className="w-full h-72 sm:h-80 lg:h-96 object-cover"
             />
           </div>
           {images.length > 1 && (
@@ -114,7 +114,7 @@ export default function ProductDetail() {
         <div className="space-y-4">
           {product.isBestSeller && <span className="badge">Best Seller</span>}
 
-          <h1 className="font-headline font-bold text-headline-lg text-ink leading-tight">
+          <h1 className="font-headline font-bold text-headline-md sm:text-headline-lg text-ink leading-tight">
             {product.name}
           </h1>
 
@@ -160,7 +160,7 @@ export default function ProductDetail() {
           )}
 
           {/* Quantity + Add to cart */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
             <div className="flex items-center border border-border rounded overflow-hidden">
               <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-3 py-2 hover:bg-surface-section transition-colors text-ink-muted">−</button>
               <span className="px-4 py-2 text-body-md font-medium">{qty}</span>
@@ -183,7 +183,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
             {[
               { icon: ShieldCheck, label: 'Secure Checkout' },
               { icon: RotateCcw,   label: '30-Day Returns' },
@@ -200,12 +200,12 @@ export default function ProductDetail() {
 
       {/* Tabs: Description / Reviews */}
       <div className="mt-10" id="reviews">
-        <div className="flex border-b border-border mb-6">
+        <div className="flex border-b border-border mb-6 overflow-x-auto">
           {['description', 'reviews'].map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-6 py-3 text-body-md font-medium capitalize transition-colors border-b-2 -mb-px ${tab === t ? 'border-orange text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
+              className={`px-4 sm:px-6 py-3 text-body-sm sm:text-body-md font-medium capitalize transition-colors border-b-2 -mb-px whitespace-nowrap ${tab === t ? 'border-orange text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               {t === 'reviews' ? `Reviews (${product.reviews?.length ?? 0})` : 'Description'}
             </button>
@@ -221,7 +221,7 @@ export default function ProductDetail() {
         {tab === 'reviews' && (
           <div className="space-y-6">
             {/* Rating summary */}
-            <div className="card p-6 flex gap-8 items-center">
+            <div className="card p-6 flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center">
               <div className="text-center">
                 <p className="font-headline font-bold text-5xl text-ink">{avgRating.toFixed(1)}</p>
                 <StarRating rating={avgRating} size={18} />
