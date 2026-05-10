@@ -1,6 +1,6 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { User, Package, Settings, LogOut, CheckCircle2, Clock, Truck, Star } from 'lucide-react'
+import { User, Package, Settings, LogOut, LayoutDashboard, Clock, Truck, Star } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import api from '../services/api'
 import StarRating from '../components/shop/StarRating'
@@ -93,7 +93,7 @@ const TABS = [
 
 export default function Profile() {
   const navigate = useNavigate()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, isSeller, logout } = useAuth()
   const [tab,    setTab]    = useState('orders')
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -134,14 +134,25 @@ export default function Profile() {
                   <t.icon size={16} />{t.label}
                 </button>
               ))}
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-body-sm text-red-500 hover:bg-red-50 transition-colors"
-              >
-                <LogOut size={16} />Sign Out
-              </button>
-            </nav>
-          </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-body-sm text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={16} />Sign Out
+                </button>
+              </nav>
+
+              {isSeller && (
+                <div className="pt-4 border-t border-border">
+                  <Link
+                    to="/seller/dashboard"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-orange text-white font-semibold text-body-sm hover:bg-orange-hover transition-colors shadow-sm"
+                  >
+                    <LayoutDashboard size={16} />Seller Dashboard
+                  </Link>
+                </div>
+              )}
+            </div>
         </aside>
 
         {/* Main content */}

@@ -1,8 +1,8 @@
-﻿import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Wand2, Loader2, X } from 'lucide-react'
 import api from '../../services/api'
 
-const CATEGORIES = ['Electronics', 'Clothing', 'Books', 'Home & Kitchen', 'Sports', 'Beauty', 'Toys', 'Automotive']
+// Categories will be fetched from the backend
 
 const EMPTY = { name: '', description: '', price: '', stock: '', category: '', images: [] }
 
@@ -12,6 +12,13 @@ export default function ProductForm({ initial, onSuccess, onCancel }) {
   const [aiText,  setAiText]  = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [errors,  setErrors]  = useState({})
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    api.get('/categories').then(({ data }) => {
+      if (data.categories) setCategories(data.categories.map(c => c.name))
+    }).catch(() => {})
+  }, [])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -118,7 +125,7 @@ export default function ProductForm({ initial, onSuccess, onCancel }) {
         <label className="text-label-md text-ink-muted block mb-1.5">Category *</label>
         <select value={form.category} onChange={e => set('category', e.target.value)} className="input">
           <option value="">Select a category…</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         {errors.category && <p className="text-body-sm text-red-500 mt-1">{errors.category}</p>}
       </div>

@@ -24,6 +24,7 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/orders',     require('./routes/orders'));
 app.use('/api/reviews',    require('./routes/reviews'));
 app.use('/api/admin',      require('./routes/admin'));
+app.use('/api/ai',         require('./routes/ai'));
 
 // 404 fallback
 app.use((_req, res) => {
