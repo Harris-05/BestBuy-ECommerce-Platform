@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Truck, CheckCircle2, Loader2, Lock } from 'lucide-react'
 import { loadStripe } from '@stripe/stripe-js'
@@ -30,27 +30,33 @@ function useStripePromise() {
 }
 
 function CheckoutContent() {
-  const navigate   = useNavigate()
-  const { user }   = useAuth()
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const { items, total, clearCart } = useCart()
-  const stripe     = useStripe()
-  const elements   = useElements()
+  const stripe = useStripe()
+  const elements = useElements()
   const stripeReady = !!stripe && !!elements
 
-  const [step,    setStep]    = useState(0)
+  const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState(null)
   const [cardError, setCardError] = useState('')
 
   const [shipping, setShipping] = useState({
-    name:    user?.name ?? '',
-    email:   user?.email ?? '',
-    phone:   '',
+    name: user?.name ?? '',
+    email: user?.email ?? '',
+    phone: '',
     address: '',
-    city:    '',
+    city: '',
     country: 'Pakistan',
-    zip:     '',
+    postalCode: '',
   })
+
+  useEffect(() => {
+    if (status !== 'loading' && !user) {
+      navigate('/login?redirect=/checkout')
+    }
+  }, [user, status, navigate])
   const [paymentMethod, setPaymentMethod] = useState('COD')
 
   if (!items.length && !orderId) {
@@ -75,7 +81,7 @@ function CheckoutContent() {
         </p>
         <div className="flex gap-3">
           <Link to="/profile#orders" className="btn-primary">Track Order</Link>
-          <Link to="/products"       className="btn-secondary">Continue Shopping</Link>
+          <Link to="/products" className="btn-secondary">Continue Shopping</Link>
         </div>
       </div>
     )
@@ -104,14 +110,14 @@ function CheckoutContent() {
           payment_method: {
             card: elements.getElement(CardElement),
             billing_details: {
-              name:  shipping.name,
+              name: shipping.name,
               email: shipping.email,
               phone: shipping.phone || undefined,
               address: {
-                line1:       shipping.address,
-                city:        shipping.city,
-                country:     shipping.country,
-                postal_code: shipping.zip,
+                line1: shipping.address,
+                city: shipping.city,
+                country: shipping.country,
+                postal_code: shipping.postalCode,
               },
             },
           },
@@ -160,20 +166,20 @@ function CheckoutContent() {
         <div className="lg:col-span-2">
 
           {/* Step 0: Shipping */}
-          {step === 0 && (
+          <div className={step === 0 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm flex items-center gap-2">
                 <Truck size={20} className="text-navy" />Shipping Address
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { label: 'Full Name',       key: 'name',    type: 'text',  span: true  },
-                  { label: 'Email',           key: 'email',   type: 'email', span: true  },
-                  { label: 'Phone',           key: 'phone',   type: 'tel',   span: false },
-                  { label: 'ZIP Code',        key: 'zip',     type: 'text',  span: false },
-                  { label: 'Street Address',  key: 'address', type: 'text',  span: true  },
-                  { label: 'City',            key: 'city',    type: 'text',  span: false },
-                  { label: 'Country',         key: 'country', type: 'text',  span: false },
+                  { label: 'Full Name', key: 'name', type: 'text', span: true },
+                  { label: 'Email', key: 'email', type: 'email', span: true },
+                  { label: 'Phone', key: 'phone', type: 'tel', span: false },
+                  { label: 'ZIP Code', key: 'postalCode', type: 'text', span: false },
+                  { label: 'Street Address', key: 'address', type: 'text', span: true },
+                  { label: 'City', key: 'city', type: 'text', span: false },
+                  { label: 'Country', key: 'country', type: 'text', span: false },
                 ].map(f => (
                   <div key={f.key} className={f.span ? 'sm:col-span-2' : ''}>
                     <label className="text-label-md text-ink-muted block mb-1.5">{f.label}</label>
@@ -187,12 +193,22 @@ function CheckoutContent() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setStep(1)} className="btn-primary">Continue to Payment</button>
+              <button
+                onClick={() => {
+                  const required = ['name', 'email', 'address', 'city', 'postalCode']
+                  const missing = required.filter(k => !shipping[k])
+                  if (missing.length) return alert(`Please fill in all required fields: ${missing.join(', ')}`)
+                  setStep(1)
+                }}
+                className="btn-primary"
+              >
+                Continue to Payment
+              </button>
             </div>
-          )}
+          </div>
 
           {/* Step 1: Payment */}
-          {step === 1 && (
+          <div className={step === 1 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm flex items-center gap-2">
                 <CreditCard size={20} className="text-navy" />Payment Method
@@ -255,17 +271,17 @@ function CheckoutContent() {
                 <button onClick={() => setStep(2)} className="btn-primary flex-1">Review Order</button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Step 2: Review */}
-          {step === 2 && (
+          <div className={step === 2 ? 'block' : 'hidden'}>
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm">Review Your Order</h2>
 
               <div className="space-y-1 text-body-sm">
                 <h4 className="font-semibold text-ink">Shipping to</h4>
                 <p className="text-ink-muted">{shipping.name} · {shipping.phone}</p>
-                <p className="text-ink-muted">{shipping.address}, {shipping.city}, {shipping.country} {shipping.zip}</p>
+                <p className="text-ink-muted">{shipping.address}, {shipping.city}, {shipping.country} {shipping.postalCode}</p>
               </div>
 
               <div className="space-y-1 text-body-sm">
@@ -300,7 +316,7 @@ function CheckoutContent() {
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Order summary sidebar */}
