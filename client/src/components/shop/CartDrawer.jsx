@@ -1,7 +1,8 @@
-﻿import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingBag, Trash2, Plus, Minus } from 'lucide-react'
 import { useCart } from '../../hooks/useCart'
+import { resolveImage } from '../../lib/shop-utils'
 
 export default function CartDrawer() {
   const { items, total, drawerOpen, closeDrawer, removeItem, updateQuantity } = useCart()
@@ -57,7 +58,7 @@ export default function CartDrawer() {
               {items.map(item => (
                 <li key={item.productId} className="flex gap-3">
                   <img
-                    src={item.image ?? 'https://placehold.co/64x64?text=?'}
+                    src={resolveImage(item.image)}
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded-md border border-border flex-shrink-0"
                   />

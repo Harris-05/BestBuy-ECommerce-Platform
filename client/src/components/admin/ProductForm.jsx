@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Wand2, Loader2, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Wand2, Loader2, X, Upload, Image as ImageIcon } from 'lucide-react'
 import api from '../../services/api'
-
-// Categories will be fetched from the backend
 
 const EMPTY = { name: '', description: '', price: '', stock: '', category: '', images: [] }
 
@@ -11,8 +9,10 @@ export default function ProductForm({ initial, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false)
   const [aiText,  setAiText]  = useState('')
   const [aiLoading, setAiLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [errors,  setErrors]  = useState({})
   const [categories, setCategories] = useState([])
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     api.get('/categories').then(({ data }) => {
@@ -40,9 +40,30 @@ export default function ProductForm({ initial, onSuccess, onCancel }) {
       const { data } = await api.post('/ai/parse-product', { text: aiText })
       setForm(f => ({ ...f, ...data }))
     } catch {
-      // silently fail — let user fill manually
+      // silently fail
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('image', file)
+
+    setUploading(true)
+    try {
+      const { data } = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      set('images', [...(form.images ?? []), data.url])
+    } catch (err) {
+      alert(err.response?.data?.message ?? 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -130,32 +151,76 @@ export default function ProductForm({ initial, onSuccess, onCancel }) {
         {errors.category && <p className="text-body-sm text-red-500 mt-1">{errors.category}</p>}
       </div>
 
-      {/* Image URLs */}
+      {/* Images Section */}
       <div>
-        <label className="text-label-md text-ink-muted block mb-1.5">Image URLs</label>
-        {(form.images ?? []).map((url, i) => (
-          <div key={i} className="flex gap-2 mb-2">
-            <input
-              value={url}
-              onChange={e => {
-                const imgs = [...form.images]; imgs[i] = e.target.value; set('images', imgs)
-              }}
-              placeholder="https://…"
-              className="input flex-1 text-body-sm"
-            />
-            <button type="button" onClick={() => set('images', form.images.filter((_, j) => j !== i))} className="p-2 text-red-400 hover:text-red-600">
-              <X size={16} />
-            </button>
-          </div>
-        ))}
-        <button type="button" onClick={() => set('images', [...(form.images ?? []), ''])} className="text-body-sm text-navy hover:underline">
-          + Add image URL
-        </button>
+        <label className="text-label-md text-ink-muted block mb-1.5">Product Images</label>
+        
+        {/* Image Grid */}
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          {(form.images ?? []).map((url, i) => (
+            <div key={i} className="relative group aspect-square rounded-lg border border-border overflow-hidden bg-surface-dim">
+              <img src={url} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => set('images', form.images.filter((_, j) => j !== i))}
+                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+          
+          {/* Upload Button */}
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="aspect-square rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-navy hover:bg-surface-section transition-all text-ink-faint hover:text-navy"
+          >
+            {uploading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <>
+                <Upload size={20} />
+                <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
+              </>
+            )}
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleUpload}
+            className="hidden"
+            accept="image/*"
+          />
+        </div>
+
+        {/* URL Inputs (Fallback) */}
+        <div className="space-y-2">
+          {(form.images ?? []).map((url, i) => (
+            <div key={i} className="flex gap-2">
+              <input
+                value={url}
+                onChange={e => {
+                  const imgs = [...form.images]; imgs[i] = e.target.value; set('images', imgs)
+                }}
+                placeholder="https://…"
+                className="input flex-1 text-body-sm py-1.5"
+              />
+              <button type="button" onClick={() => set('images', form.images.filter((_, j) => j !== i))} className="p-2 text-red-400 hover:text-red-600">
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={() => set('images', [...(form.images ?? []), ''])} className="text-body-sm text-navy hover:underline flex items-center gap-1.5">
+            <ImageIcon size={14} /> Add image by URL
+          </button>
+        </div>
       </div>
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">
+        <button type="submit" disabled={loading || uploading} className="btn-primary flex-1 justify-center">
           {loading ? <><Loader2 size={15} className="animate-spin" />Saving…</> : (initial?._id ? 'Update Product' : 'Create Product')}
         </button>
         {onCancel && (

@@ -1,7 +1,8 @@
-﻿import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ShoppingBag, Trash2, Plus, Minus } from 'lucide-react'
 import { useCart } from '../hooks/useCart'
 import StarRating from '../components/shop/StarRating'
+import { resolveImage } from '../lib/shop-utils'
 
 export default function Cart() {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart()
@@ -27,7 +28,7 @@ export default function Cart() {
           {items.map(item => (
             <div key={item.productId} className="card p-4 flex gap-4">
               <Link to={`/products/${item.slug}`}>
-                <img src={item.image ?? 'https://placehold.co/96x96?text=?'} alt={item.name} className="w-24 h-24 object-cover rounded-md border border-border" />
+                <img src={resolveImage(item.image)} alt={item.name} className="w-24 h-24 object-cover rounded-md border border-border" />
               </Link>
               <div className="flex-1 min-w-0">
                 <Link to={`/products/${item.slug}`} className="font-medium text-body-md text-ink hover:text-navy line-clamp-2">{item.name}</Link>

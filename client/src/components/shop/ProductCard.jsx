@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ShoppingCart } from 'lucide-react'
 import StarRating from './StarRating'
 import { useCart } from '../../hooks/useCart'
+import { resolveImage } from '../../lib/shop-utils'
 
 export default function ProductCard({ product }) {
   const { addItem, openDrawer } = useCart()
@@ -11,7 +12,7 @@ export default function ProductCard({ product }) {
     ? product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length
     : product.rating ?? 0
   const reviewCount = product.reviews?.length ?? product.reviewCount ?? 0
-  const image = Array.isArray(product.images) ? product.images[0] : product.image ?? 'https://placehold.co/400x300?text=No+Image'
+  const image = resolveImage(Array.isArray(product.images) ? product.images[0] : (product.image ?? product.images))
   const slug  = product.slug ?? product._id ?? product.id
 
   const handleAddToCart = (e) => {
