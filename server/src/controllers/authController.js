@@ -7,12 +7,18 @@ const sendEmail = require('../utils/sendEmail');
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
+    const allowedRoles = ['user', 'seller'];
+
+    if (role && !allowedRoles.includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid role' });
+    }
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, role: role || 'user' });
     sendTokenResponse(user, 201, res);
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
