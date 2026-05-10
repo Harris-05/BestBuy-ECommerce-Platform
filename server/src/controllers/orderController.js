@@ -1,8 +1,8 @@
-const Order   = require('../models/Order');
+const Order = require('../models/Order');
 const Product = require('../models/Product');
-const User    = require('../models/User');
+const User = require('../models/User');
 const { sendSellerNewOrderEmail, sendCustomerOrderConfirmation } = require('../services/emailService');
-const sse     = require('../services/sseManager');
+const sse = require('../services/sseManager');
 
 // Normalise frontend payment method strings to the enum values in Order schema
 const METHOD_MAP = { cod: 'COD', card: 'Stripe', stripe: 'Stripe' };
@@ -51,12 +51,13 @@ exports.placeOrder = async (req, res) => {
       if (!product) continue;
       const qty = item.quantity ?? 1;
       enriched.push({
-        product:  product._id,
-        name:     product.name,
-        price:    product.price,
+
+        product: product._id,
+        name: product.name,
+        price: product.price,
         quantity: qty,
-        image:    product.images?.[0] ?? '',
-        seller:   product.seller,
+        image: product.images?.[0] ?? '',
+        seller: product.seller,
       });
       total += product.price * qty;
     }
@@ -68,13 +69,13 @@ exports.placeOrder = async (req, res) => {
     const isPaid = normalizedMethod === 'Stripe' && !!paymentIntentId;
 
     const order = await Order.create({
-      user:            req.user._id,
-      items:           enriched,
+      user: req.user._id,
+      items: enriched,
       shippingAddress: shippingAddress ?? {},
-      paymentMethod:   normalizedMethod,
+      paymentMethod: normalizedMethod,
       total,
       isPaid,
-      paidAt:          isPaid ? new Date() : undefined,
+      paidAt: isPaid ? new Date() : undefined,
     });
 
     // Group enriched items by seller for targeted notifications
@@ -90,19 +91,19 @@ exports.placeOrder = async (req, res) => {
     for (const [sellerId, sellerItems] of bySellerMap) {
       // Live SSE push
       sse.emit(sellerId, 'new_order', {
-        _id:       order._id,
-        orderRef:  order._id.toString().slice(-8).toUpperCase(),
-        total:     order.total,
-        status:    order.status,
+        _id: order._id,
+        orderRef: order._id.toString().slice(-8).toUpperCase(),
+        total: order.total,
+        status: order.status,
         createdAt: order.createdAt,
         paymentMethod: order.paymentMethod,
         shippingAddress: order.shippingAddress,
         items: sellerItems.map(i => ({
-          name:     i.name,
-          price:    i.price,
+          name: i.name,
+          price: i.price,
           quantity: i.quantity,
-          image:    i.image,
-          product:  { _id: i.product, name: i.name, images: [i.image] },
+          image: i.image,
+          product: { _id: i.product, name: i.name, images: [i.image] },
         })),
       });
 
@@ -110,20 +111,20 @@ exports.placeOrder = async (req, res) => {
       User.findById(sellerId)
         .then(seller => {
           if (seller?.email) {
-            sendSellerNewOrderEmail(seller.email, seller.name, order, sellerItems).catch(() => {});
+            sendSellerNewOrderEmail(seller.email, seller.name, order, sellerItems).catch(() => { });
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     // Customer confirmation email (fire-and-forget)
     User.findById(req.user._id)
       .then(customer => {
         if (customer?.email) {
-          sendCustomerOrderConfirmation(customer.email, customer.name, order).catch(() => {});
+          sendCustomerOrderConfirmation(customer.email, customer.name, order).catch(() => { });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     res.status(201).json({ success: true, order });
   } catch (error) {

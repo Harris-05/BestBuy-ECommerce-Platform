@@ -30,24 +30,24 @@ function useStripePromise() {
 }
 
 function CheckoutContent() {
-  const navigate   = useNavigate()
-  const { user }   = useAuth()
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const { items, total, clearCart } = useCart()
-  const stripe     = useStripe()
-  const elements   = useElements()
+  const stripe = useStripe()
+  const elements = useElements()
   const stripeReady = !!stripe && !!elements
 
-  const [step,    setStep]    = useState(0)
+  const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState(null)
   const [cardError, setCardError] = useState('')
 
   const [shipping, setShipping] = useState({
-    name:    user?.name ?? '',
-    email:   user?.email ?? '',
-    phone:   '',
+    name: user?.name ?? '',
+    email: user?.email ?? '',
+    phone: '',
     address: '',
-    city:    '',
+    city: '',
     country: 'Pakistan',
     postalCode: '',
   })
@@ -81,7 +81,7 @@ function CheckoutContent() {
         </p>
         <div className="flex gap-3">
           <Link to="/profile#orders" className="btn-primary">Track Order</Link>
-          <Link to="/products"       className="btn-secondary">Continue Shopping</Link>
+          <Link to="/products" className="btn-secondary">Continue Shopping</Link>
         </div>
       </div>
     )
@@ -110,13 +110,13 @@ function CheckoutContent() {
           payment_method: {
             card: elements.getElement(CardElement),
             billing_details: {
-              name:  shipping.name,
+              name: shipping.name,
               email: shipping.email,
               phone: shipping.phone || undefined,
               address: {
-                line1:       shipping.address,
-                city:        shipping.city,
-                country:     shipping.country,
+                line1: shipping.address,
+                city: shipping.city,
+                country: shipping.country,
                 postal_code: shipping.postalCode,
               },
             },
@@ -173,13 +173,13 @@ function CheckoutContent() {
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { label: 'Full Name',       key: 'name',    type: 'text',  span: true  },
-                  { label: 'Email',           key: 'email',   type: 'email', span: true  },
-                  { label: 'Phone',           key: 'phone',   type: 'tel',   span: false },
-                  { label: 'ZIP Code',        key: 'postalCode', type: 'text',  span: false },
-                  { label: 'Street Address',  key: 'address',    type: 'text',  span: true  },
-                  { label: 'City',            key: 'city',       type: 'text',  span: false },
-                  { label: 'Country',         key: 'country',    type: 'text',  span: false },
+                  { label: 'Full Name', key: 'name', type: 'text', span: true },
+                  { label: 'Email', key: 'email', type: 'email', span: true },
+                  { label: 'Phone', key: 'phone', type: 'tel', span: false },
+                  { label: 'ZIP Code', key: 'postalCode', type: 'text', span: false },
+                  { label: 'Street Address', key: 'address', type: 'text', span: true },
+                  { label: 'City', key: 'city', type: 'text', span: false },
+                  { label: 'Country', key: 'country', type: 'text', span: false },
                 ].map(f => (
                   <div key={f.key} className={f.span ? 'sm:col-span-2' : ''}>
                     <label className="text-label-md text-ink-muted block mb-1.5">{f.label}</label>
