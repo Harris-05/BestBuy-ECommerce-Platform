@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { SlidersHorizontal, X } from 'lucide-react'
@@ -16,13 +16,18 @@ export default function Products() {
 
   const debouncedSearch = useDebounce(filters.search, 400)
 
-  /* Sync URL search params → redux filters on mount */
   useEffect(() => {
     const search   = searchParams.get('search')   ?? searchParams.get('q') ?? ''
     const category = searchParams.get('category') ?? ''
     const sort     = searchParams.get('sort')     ?? 'newest'
-    dispatch(setFilter({ search, category, sort }))
-  }, []) // eslint-disable-line
+    const minPrice = searchParams.get('minPrice') ?? ''
+    const maxPrice = searchParams.get('maxPrice') ?? ''
+    const rating   = searchParams.get('rating')   ?? ''
+    const pageNum  = parseInt(searchParams.get('page') ?? '1', 10)
+    
+    dispatch(setFilter({ search, category, sort, minPrice, maxPrice, rating }))
+    dispatch(setPage(pageNum))
+  }, [searchParams, dispatch])
 
   /* Refetch whenever filters or page change */
   useEffect(() => {
@@ -62,15 +67,15 @@ export default function Products() {
       {/* Active filter chips */}
       {(filters.search || filters.category || filters.minPrice || filters.maxPrice || filters.rating) && (
         <div className="flex flex-wrap gap-2 mb-4">
-          {filters.search   && <FilterChip label={`"${filters.search}"`}   onRemove={() => dispatch(setFilter({ search: '' }))} />}
-          {filters.category && <FilterChip label={filters.category}         onRemove={() => dispatch(setFilter({ category: '' }))} />}
+          {filters.search   && <FilterChip label={`"${filters.search}"`}   onRemove={() => { const p = new URLSearchParams(searchParams); p.delete('search'); p.set('page','1'); setSearchParams(p) }} />}
+          {filters.category && <FilterChip label={filters.category}         onRemove={() => { const p = new URLSearchParams(searchParams); p.delete('category'); p.set('page','1'); setSearchParams(p) }} />}
           {(filters.minPrice || filters.maxPrice) && (
             <FilterChip
               label={`$${filters.minPrice || '0'} – $${filters.maxPrice || '∞'}`}
-              onRemove={() => dispatch(setFilter({ minPrice: '', maxPrice: '' }))}
+              onRemove={() => { const p = new URLSearchParams(searchParams); p.delete('minPrice'); p.delete('maxPrice'); p.set('page','1'); setSearchParams(p) }}
             />
           )}
-          {filters.rating   && <FilterChip label={`${filters.rating}★ & up`} onRemove={() => dispatch(setFilter({ rating: '' }))} />}
+          {filters.rating   && <FilterChip label={`${filters.rating}★ & up`} onRemove={() => { const p = new URLSearchParams(searchParams); p.delete('rating'); p.set('page','1'); setSearchParams(p) }} />}
         </div>
       )}
 
@@ -104,7 +109,7 @@ export default function Products() {
               <span className="text-label-md text-ink-muted">Sort:</span>
               <select
                 value={filters.sort}
-                onChange={e => dispatch(setFilter({ sort: e.target.value }))}
+                onChange={e => { const p = new URLSearchParams(searchParams); p.set('sort', e.target.value); p.set('page', '1'); setSearchParams(p) }}
                 className="border-none text-body-sm focus:outline-none cursor-pointer text-ink"
               >
                 <option value="newest">Newest</option>
@@ -121,19 +126,27 @@ export default function Products() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-8">
-              <button onClick={() => dispatch(setPage(page - 1))} disabled={page <= 1} className="btn-secondary px-4 py-2 text-body-sm disabled:opacity-40">
+              <button
+                onClick={() => { const p = new URLSearchParams(searchParams); p.set('page', String(page - 1)); setSearchParams(p) }}
+                disabled={page <= 1}
+                className="btn-secondary px-4 py-2 text-body-sm disabled:opacity-40"
+              >
                 Previous
               </button>
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
                 <button
                   key={p}
-                  onClick={() => dispatch(setPage(p))}
+                  onClick={() => { const params = new URLSearchParams(searchParams); params.set('page', String(p)); setSearchParams(params) }}
                   className={`w-9 h-9 rounded text-body-sm ${p === page ? 'bg-navy text-white' : 'btn-secondary'}`}
                 >
                   {p}
                 </button>
               ))}
-              <button onClick={() => dispatch(setPage(page + 1))} disabled={page >= totalPages} className="btn-secondary px-4 py-2 text-body-sm disabled:opacity-40">
+              <button
+                onClick={() => { const p = new URLSearchParams(searchParams); p.set('page', String(page + 1)); setSearchParams(p) }}
+                disabled={page >= totalPages}
+                className="btn-secondary px-4 py-2 text-body-sm disabled:opacity-40"
+              >
                 Next
               </button>
             </div>

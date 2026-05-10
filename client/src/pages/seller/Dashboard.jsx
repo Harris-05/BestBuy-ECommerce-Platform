@@ -1,7 +1,7 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Package, ShoppingBag, DollarSign, Star, Plus, Pencil, Trash2, X, Loader2, BarChart3
+  Package, ShoppingBag, DollarSign, Star, Plus, Pencil, Trash2, X, Loader2, BarChart3, Bell
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../services/api'
@@ -16,35 +16,77 @@ const STATUS_COLORS = {
   Delivered: 'bg-green-100 text-green-800',
 }
 const PIPELINE = ['Pending', 'Confirmed', 'Shipped', 'Delivered']
-
 const TABS = ['Overview', 'Products', 'Orders', 'Reviews']
+
+const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api').replace(/\/$/, '')
 
 export default function SellerDashboard() {
   const navigate = useNavigate()
   const { user, isSeller, status: authStatus } = useAuth()
-  const [tab,      setTab]      = useState('Overview')
-  const [products, setProducts] = useState([])
-  const [orders,   setOrders]   = useState([])
-  const [stats,    setStats]    = useState({ revenue: 0, orders: 0, products: 0, avgRating: 0 })
-  const [loading,  setLoading]  = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editing,  setEditing]  = useState(null)
+  const [tab,       setTab]       = useState('Overview')
+  const [products,  setProducts]  = useState([])
+  const [orders,    setOrders]    = useState([])
+  const [stats,     setStats]     = useState({ revenue: 0, orders: 0, products: 0, avgRating: 0 })
+  const [loading,   setLoading]   = useState(true)
+  const [showForm,  setShowForm]  = useState(false)
+  const [editing,   setEditing]   = useState(null)
+  const [liveAlert, setLiveAlert] = useState(null) // new-order SSE notification
 
+  const computeStats = useCallback((prods, ords) => {
+    const revenue   = ords.reduce((s, o) => s + Number(o.total ?? 0), 0)
+    const ratings   = prods.flatMap(p => p.reviews?.map(r => r.rating) ?? [])
+    const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
+    setStats({ revenue, orders: ords.length, products: prods.length, avgRating })
+  }, [])
+
+  // Initial data load
   useEffect(() => {
     if (authStatus === 'loading') return
     if (!isSeller) { navigate('/'); return }
+
     Promise.all([
       api.get('/products/mine').catch(() => ({ data: [] })),
       api.get('/orders/seller').catch(() => ({ data: [] })),
     ]).then(([p, o]) => {
-      setProducts(p.data)
-      setOrders(o.data)
-      const revenue   = o.data.reduce((s, ord) => s + Number(ord.total ?? 0), 0)
-      const ratings   = p.data.flatMap(pr => pr.reviews?.map(r => r.rating) ?? [])
-      const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
-      setStats({ revenue, orders: o.data.length, products: p.data.length, avgRating })
+      const prods = Array.isArray(p.data) ? p.data : []
+      const ords  = Array.isArray(o.data) ? o.data : []
+      setProducts(prods)
+      setOrders(ords)
+      computeStats(prods, ords)
     }).finally(() => setLoading(false))
-  }, [isSeller, authStatus, navigate])
+  }, [isSeller, authStatus, navigate, computeStats])
+
+  // SSE — live order notifications
+  useEffect(() => {
+    if (!isSeller || authStatus !== 'succeeded') return
+
+    const es = new EventSource(`${API_BASE}/orders/seller/stream`, { withCredentials: true })
+
+    es.addEventListener('new_order', (e) => {
+      const incoming = JSON.parse(e.data)
+
+      // Prepend to orders list and refresh stats
+      setOrders(prev => {
+        const updated = [incoming, ...prev]
+        setStats(s => ({
+          ...s,
+          orders:  updated.length,
+          revenue: updated.reduce((sum, o) => sum + Number(o.total ?? 0), 0),
+        }))
+        return updated
+      })
+
+      setLiveAlert(incoming)
+      // Auto-dismiss alert after 8 seconds
+      setTimeout(() => setLiveAlert(null), 8000)
+    })
+
+    es.addEventListener('error', () => {
+      // Connection dropped — browser will retry automatically
+    })
+
+    return () => es.close()
+  }, [isSeller, authStatus])
 
   const deleteProduct = async (row) => {
     if (!confirm(`Delete "${row.name}"?`)) return
@@ -67,6 +109,22 @@ export default function SellerDashboard() {
 
   return (
     <div className="container-content py-8">
+      {/* Live order alert banner */}
+      {liveAlert && (
+        <div className="fixed top-4 right-4 z-50 max-w-sm w-full bg-navy text-white rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right">
+          <div className="w-9 h-9 rounded-full bg-orange/20 flex items-center justify-center shrink-0">
+            <Bell size={18} className="text-orange" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-body-sm">New Order #{liveAlert.orderRef ?? liveAlert._id?.toString().slice(-8).toUpperCase()}!</p>
+            <p className="text-label-sm text-white/70">{liveAlert.items?.length ?? 0} item(s) · ${Number(liveAlert.total ?? 0).toFixed(2)}</p>
+          </div>
+          <button onClick={() => setLiveAlert(null)} className="text-white/60 hover:text-white shrink-0">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-headline font-bold text-headline-lg text-ink">Seller Dashboard</h1>
@@ -86,6 +144,9 @@ export default function SellerDashboard() {
             className={`px-5 py-3 text-body-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${tab === t ? 'border-orange text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
           >
             {t}
+            {t === 'Orders' && liveAlert && (
+              <span className="ml-1.5 w-2 h-2 rounded-full bg-orange inline-block" />
+            )}
           </button>
         ))}
       </div>
@@ -94,13 +155,12 @@ export default function SellerDashboard() {
       {tab === 'Overview' && (
         <div className="space-y-6">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatsCard title="Total Revenue"    value={`$${stats.revenue.toFixed(2)}`}     icon={DollarSign} color="orange" />
-            <StatsCard title="Total Orders"     value={stats.orders}                        icon={ShoppingBag} color="navy" />
-            <StatsCard title="Active Products"  value={stats.products}                      icon={Package}    color="green" />
-            <StatsCard title="Avg. Rating"      value={`${stats.avgRating.toFixed(1)} ★`}  icon={Star}       color="orange" trend={2} />
+            <StatsCard title="Total Revenue"   value={`$${stats.revenue.toFixed(2)}`}    icon={DollarSign} color="orange" />
+            <StatsCard title="Total Orders"    value={stats.orders}                       icon={ShoppingBag} color="navy" />
+            <StatsCard title="Active Products" value={stats.products}                     icon={Package}    color="green" />
+            <StatsCard title="Avg. Rating"     value={`${stats.avgRating.toFixed(1)} ★`} icon={Star}       color="orange" trend={2} />
           </div>
 
-          {/* Recent orders */}
           <div className="card p-5">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 size={18} className="text-navy" />
@@ -113,7 +173,7 @@ export default function SellerDashboard() {
                 {orders.slice(0, 5).map(o => (
                   <div key={o._id ?? o.id} className="flex items-center gap-4 py-2 border-b border-border last:border-0">
                     <div className="flex-1">
-                      <p className="text-body-sm font-medium text-ink">#{(o._id ?? o.id).slice(-8).toUpperCase()}</p>
+                      <p className="text-body-sm font-medium text-ink">#{(o._id ?? o.id).toString().slice(-8).toUpperCase()}</p>
                       <p className="text-label-sm text-ink-faint">{new Date(o.createdAt).toLocaleDateString()}</p>
                     </div>
                     <span className={`text-label-sm px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[o.status] ?? 'bg-gray-100 text-gray-700'}`}>
@@ -130,14 +190,12 @@ export default function SellerDashboard() {
 
       {/* Products */}
       {tab === 'Products' && (
-        <div className="space-y-4">
-          <DataTable
-            data={products}
-            columns={['name', 'category', 'price', 'stock', 'isActive']}
-            onEdit={row => { setEditing(row); setShowForm(true) }}
-            onDelete={deleteProduct}
-          />
-        </div>
+        <DataTable
+          data={products}
+          columns={['name', 'category', 'price', 'stock', 'isActive']}
+          onEdit={row => { setEditing(row); setShowForm(true) }}
+          onDelete={deleteProduct}
+        />
       )}
 
       {/* Orders */}
@@ -152,8 +210,16 @@ export default function SellerDashboard() {
             <div key={o._id ?? o.id} className="card p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-headline font-semibold text-body-md text-ink">Order #{(o._id ?? o.id).slice(-8).toUpperCase()}</p>
+                  <p className="font-headline font-semibold text-body-md text-ink">
+                    Order #{(o._id ?? o.id).toString().slice(-8).toUpperCase()}
+                  </p>
                   <p className="text-label-sm text-ink-faint">{new Date(o.createdAt).toLocaleDateString()}</p>
+                  {o.paymentMethod && (
+                    <p className="text-label-sm text-ink-muted mt-0.5">
+                      {o.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid via Card'}
+                      {o.isPaid && <span className="ml-1 text-green-600">· Paid</span>}
+                    </p>
+                  )}
                 </div>
                 <span className="font-headline font-bold text-body-md text-ink">${Number(o.total).toFixed(2)}</span>
               </div>
@@ -162,8 +228,12 @@ export default function SellerDashboard() {
               <div className="space-y-2">
                 {o.items?.map((item, i) => (
                   <div key={i} className="flex items-center gap-3 text-body-sm">
-                    <img src={item.product?.images?.[0] ?? 'https://placehold.co/40x40?text=?'} alt="" className="w-10 h-10 object-cover rounded border border-border" />
-                    <p className="flex-1 text-ink">{item.product?.name ?? 'Product'} × {item.quantity}</p>
+                    <img
+                      src={item.product?.images?.[0] ?? item.image ?? 'https://placehold.co/40x40?text=?'}
+                      alt=""
+                      className="w-10 h-10 object-cover rounded border border-border"
+                    />
+                    <p className="flex-1 text-ink">{item.product?.name ?? item.name ?? 'Product'} × {item.quantity}</p>
                     <p className="text-ink font-medium">${(item.quantity * item.price).toFixed(2)}</p>
                   </div>
                 ))}
@@ -235,7 +305,7 @@ export default function SellerDashboard() {
                 initial={editing}
                 onSuccess={() => {
                   setShowForm(false)
-                  api.get('/products/mine').then(({ data }) => setProducts(data))
+                  api.get('/products/mine').then(({ data }) => setProducts(Array.isArray(data) ? data : []))
                 }}
                 onCancel={() => setShowForm(false)}
               />

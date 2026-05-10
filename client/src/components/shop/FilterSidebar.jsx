@@ -1,5 +1,4 @@
-﻿import { useDispatch, useSelector } from 'react-redux'
-import { setFilter } from '../../store/productsSlice'
+import { useSearchParams } from 'react-router-dom'
 import { Star } from 'lucide-react'
 
 const CATEGORIES = [
@@ -16,10 +15,30 @@ const PRICE_RANGES = [
 ]
 
 export default function FilterSidebar() {
-  const dispatch  = useDispatch()
-  const filters   = useSelector(s => s.products.filters)
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const update = (key, value) => dispatch(setFilter({ [key]: value }))
+  const filters = {
+    category: searchParams.get('category') ?? '',
+    minPrice: searchParams.get('minPrice') ?? '',
+    maxPrice: searchParams.get('maxPrice') ?? '',
+    rating:   searchParams.get('rating')   ?? '',
+    sort:     searchParams.get('sort')     ?? 'newest',
+  }
+
+  const update = (key, value) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (value) {
+      newParams.set(key, value)
+    } else {
+      newParams.delete(key)
+    }
+    newParams.set('page', '1') // Reset to page 1 on filter change
+    setSearchParams(newParams)
+  }
+
+  const clearAll = () => {
+    setSearchParams({})
+  }
 
   return (
     <aside className="w-full space-y-6">
@@ -60,7 +79,13 @@ export default function FilterSidebar() {
           {PRICE_RANGES.map(r => (
             <li key={r.label}>
               <button
-                onClick={() => { update('minPrice', r.min); update('maxPrice', r.max) }}
+                onClick={() => {
+                  const newParams = new URLSearchParams(searchParams)
+                  if (r.min) newParams.set('minPrice', r.min); else newParams.delete('minPrice')
+                  if (r.max) newParams.set('maxPrice', r.max); else newParams.delete('maxPrice')
+                  newParams.set('page', '1')
+                  setSearchParams(newParams)
+                }}
                 className={`w-full text-left text-body-sm px-2 py-1.5 rounded transition-colors ${
                   filters.minPrice === r.min && filters.maxPrice === r.max
                     ? 'font-semibold text-navy'
@@ -135,7 +160,7 @@ export default function FilterSidebar() {
 
       {/* Reset */}
       <button
-        onClick={() => dispatch(setFilter({ search: '', category: '', minPrice: '', maxPrice: '', sort: 'newest', rating: '' }))}
+        onClick={clearAll}
         className="btn-secondary w-full text-body-sm"
       >
         Clear All Filters

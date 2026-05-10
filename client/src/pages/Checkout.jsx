@@ -1,19 +1,46 @@
-﻿import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Truck, CheckCircle2, Loader2, Lock } from 'lucide-react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '../hooks/useCart'
 import { useAuth } from '../hooks/useAuth'
 import api from '../services/api'
 
 const STEPS = ['Shipping', 'Payment', 'Review']
 
-export default function Checkout() {
-  const navigate  = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '15px',
+      color: '#1a1a2e',
+      fontFamily: 'inherit',
+      '::placeholder': { color: '#9ca3af' },
+    },
+    invalid: { color: '#ef4444' },
+  },
+}
+
+// Initialise Stripe once (returns null if key is not set — card option will be disabled)
+function useStripePromise() {
+  return useMemo(() => {
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+    return key ? loadStripe(key) : null
+  }, [])
+}
+
+function CheckoutContent() {
+  const navigate   = useNavigate()
+  const { user }   = useAuth()
   const { items, total, clearCart } = useCart()
+  const stripe     = useStripe()
+  const elements   = useElements()
+  const stripeReady = !!stripe && !!elements
+
   const [step,    setStep]    = useState(0)
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState(null)
+  const [cardError, setCardError] = useState('')
 
   const [shipping, setShipping] = useState({
     name:    user?.name ?? '',
@@ -24,7 +51,7 @@ export default function Checkout() {
     country: 'Pakistan',
     zip:     '',
   })
-  const [payment, setPayment] = useState({ method: 'cod', cardNumber: '', expiry: '', cvv: '' })
+  const [paymentMethod, setPaymentMethod] = useState('COD')
 
   if (!items.length && !orderId) {
     return (
@@ -43,7 +70,8 @@ export default function Checkout() {
         </div>
         <h2 className="font-headline font-bold text-headline-lg text-ink">Order Placed!</h2>
         <p className="text-body-md text-ink-muted max-w-sm">
-          Your order <strong>#{orderId}</strong> has been placed and is being processed. You'll receive a confirmation email shortly.
+          Your order <strong>#{String(orderId).slice(-8).toUpperCase()}</strong> has been placed and is
+          being processed. You'll receive a confirmation email shortly.
         </p>
         <div className="flex gap-3">
           <Link to="/profile#orders" className="btn-primary">Track Order</Link>
@@ -55,17 +83,57 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     setLoading(true)
+    setCardError('')
     try {
-      const { data } = await api.post('/orders', {
-        items: items.map(i => ({ product: i.productId, quantity: i.quantity, price: i.price })),
-        total,
+      const orderPayload = {
+        items: items.map(i => ({ product: i.productId, quantity: i.quantity })),
         shippingAddress: shipping,
-        paymentMethod: payment.method,
-      })
+        paymentMethod,
+      }
+
+      if (paymentMethod === 'Stripe') {
+        if (!stripeReady) throw new Error('Stripe is not available. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file.')
+
+        // 1. Create payment intent on the server
+        const { data: piData } = await api.post('/orders/payment-intent', {
+          amount: Math.round(total * 100), // convert dollars → cents
+        })
+
+        // 2. Confirm the card payment via Stripe Elements
+        const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
+          payment_method: {
+            card: elements.getElement(CardElement),
+            billing_details: {
+              name:  shipping.name,
+              email: shipping.email,
+              phone: shipping.phone || undefined,
+              address: {
+                line1:       shipping.address,
+                city:        shipping.city,
+                country:     shipping.country,
+                postal_code: shipping.zip,
+              },
+            },
+          },
+        })
+
+        if (error) {
+          setCardError(error.message)
+          setLoading(false)
+          return
+        }
+
+        orderPayload.paymentIntentId = paymentIntent.id
+      }
+
+      // 3. Save order in database
+      const { data } = await api.post('/orders', orderPayload)
       clearCart()
-      setOrderId(data._id ?? data.id ?? 'GM-' + Date.now())
+      setOrderId(data.order?._id ?? data.order?.id ?? data._id ?? 'DEMO-' + Date.now())
     } catch (err) {
-      alert(err.response?.data?.message ?? 'Failed to place order.')
+      const msg = err.response?.data?.message ?? err.message ?? 'Failed to place order.'
+      if (paymentMethod === 'Stripe') setCardError(msg)
+      else alert(msg)
     } finally {
       setLoading(false)
     }
@@ -89,8 +157,6 @@ export default function Checkout() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-
-        {/* Form area */}
         <div className="lg:col-span-2">
 
           {/* Step 0: Shipping */}
@@ -101,13 +167,13 @@ export default function Checkout() {
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {[
-                  { label: 'Full Name',    key: 'name',    type: 'text',  span: true },
-                  { label: 'Email',        key: 'email',   type: 'email', span: true },
-                  { label: 'Phone',        key: 'phone',   type: 'tel',   span: false },
-                  { label: 'ZIP Code',     key: 'zip',     type: 'text',  span: false },
-                  { label: 'Street Address', key: 'address', type: 'text', span: true },
-                  { label: 'City',         key: 'city',    type: 'text',  span: false },
-                  { label: 'Country',      key: 'country', type: 'text',  span: false },
+                  { label: 'Full Name',       key: 'name',    type: 'text',  span: true  },
+                  { label: 'Email',           key: 'email',   type: 'email', span: true  },
+                  { label: 'Phone',           key: 'phone',   type: 'tel',   span: false },
+                  { label: 'ZIP Code',        key: 'zip',     type: 'text',  span: false },
+                  { label: 'Street Address',  key: 'address', type: 'text',  span: true  },
+                  { label: 'City',            key: 'city',    type: 'text',  span: false },
+                  { label: 'Country',         key: 'country', type: 'text',  span: false },
                 ].map(f => (
                   <div key={f.key} className={f.span ? 'sm:col-span-2' : ''}>
                     <label className="text-label-md text-ink-muted block mb-1.5">{f.label}</label>
@@ -134,27 +200,50 @@ export default function Checkout() {
 
               <div className="space-y-3">
                 {/* COD */}
-                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${payment.method === 'cod' ? 'border-navy bg-surface-section' : 'border-border hover:border-navy/40'}`}>
-                  <input type="radio" name="method" value="cod" checked={payment.method === 'cod'} onChange={() => setPayment(p => ({ ...p, method: 'cod' }))} className="mt-1" />
+                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === 'COD' ? 'border-navy bg-surface-section' : 'border-border hover:border-navy/40'}`}>
+                  <input
+                    type="radio"
+                    name="method"
+                    value="COD"
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => { setPaymentMethod('COD'); setCardError('') }}
+                    className="mt-1"
+                  />
                   <div>
                     <p className="font-medium text-body-md text-ink">Cash on Delivery</p>
                     <p className="text-body-sm text-ink-muted">Pay when you receive your order.</p>
                   </div>
                 </label>
 
-                {/* Card */}
-                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${payment.method === 'card' ? 'border-navy bg-surface-section' : 'border-border hover:border-navy/40'}`}>
-                  <input type="radio" name="method" value="card" checked={payment.method === 'card'} onChange={() => setPayment(p => ({ ...p, method: 'card' }))} className="mt-1" />
+                {/* Card via Stripe */}
+                <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === 'Stripe' ? 'border-navy bg-surface-section' : 'border-border hover:border-navy/40'} ${!stripeReady ? 'opacity-60' : ''}`}>
+                  <input
+                    type="radio"
+                    name="method"
+                    value="Stripe"
+                    checked={paymentMethod === 'Stripe'}
+                    onChange={() => { setPaymentMethod('Stripe'); setCardError('') }}
+                    className="mt-1"
+                    disabled={!stripeReady}
+                  />
                   <div className="flex-1">
-                    <p className="font-medium text-body-md text-ink flex items-center gap-2"><CreditCard size={16} />Credit / Debit Card</p>
+                    <p className="font-medium text-body-md text-ink flex items-center gap-2">
+                      <CreditCard size={16} />Credit / Debit Card
+                      {!stripeReady && <span className="text-label-sm text-ink-faint ml-2">(not configured)</span>}
+                    </p>
                     <p className="text-body-sm text-ink-muted mb-3">Securely pay with Stripe.</p>
-                    {payment.method === 'card' && (
-                      <div className="space-y-3">
-                        <input value={payment.cardNumber} onChange={e => setPayment(p => ({ ...p, cardNumber: e.target.value }))} placeholder="1234 5678 9012 3456" className="input text-body-sm" />
-                        <div className="grid grid-cols-2 gap-3">
-                          <input value={payment.expiry} onChange={e => setPayment(p => ({ ...p, expiry: e.target.value }))} placeholder="MM / YY" className="input text-body-sm" />
-                          <input value={payment.cvv} onChange={e => setPayment(p => ({ ...p, cvv: e.target.value }))} placeholder="CVV" className="input text-body-sm" />
+
+                    {paymentMethod === 'Stripe' && stripeReady && (
+                      <div className="space-y-2">
+                        <div className="input p-3">
+                          <CardElement options={CARD_ELEMENT_OPTIONS} onChange={() => setCardError('')} />
                         </div>
+                        {cardError && (
+                          <p className="text-red-500 text-label-sm">{cardError}</p>
+                        )}
+                        <p className="text-label-sm text-ink-faint flex items-center gap-1">
+                          <Lock size={11} />Your card details are encrypted by Stripe and never touch our servers.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -173,15 +262,15 @@ export default function Checkout() {
             <div className="card p-6 space-y-5">
               <h2 className="font-headline font-semibold text-headline-sm">Review Your Order</h2>
 
-              <div className="space-y-2 text-body-sm">
+              <div className="space-y-1 text-body-sm">
                 <h4 className="font-semibold text-ink">Shipping to</h4>
                 <p className="text-ink-muted">{shipping.name} · {shipping.phone}</p>
                 <p className="text-ink-muted">{shipping.address}, {shipping.city}, {shipping.country} {shipping.zip}</p>
               </div>
 
-              <div className="space-y-2 text-body-sm">
+              <div className="space-y-1 text-body-sm">
                 <h4 className="font-semibold text-ink">Payment</h4>
-                <p className="text-ink-muted capitalize">{payment.method === 'cod' ? 'Cash on Delivery' : 'Credit Card'}</p>
+                <p className="text-ink-muted">{paymentMethod === 'COD' ? 'Cash on Delivery' : 'Credit / Debit Card (Stripe)'}</p>
               </div>
 
               <div className="space-y-2">
@@ -197,10 +286,17 @@ export default function Checkout() {
                 ))}
               </div>
 
+              {cardError && (
+                <p className="text-red-500 text-label-sm bg-red-50 border border-red-200 rounded px-3 py-2">{cardError}</p>
+              )}
+
               <div className="flex gap-3">
                 <button onClick={() => setStep(1)} className="btn-secondary">Back</button>
                 <button onClick={handlePlaceOrder} disabled={loading} className="btn-primary flex-1 justify-center">
-                  {loading ? <><Loader2 size={16} className="animate-spin" />Placing…</> : <><Lock size={16} />Place Order</>}
+                  {loading
+                    ? <><Loader2 size={16} className="animate-spin" />Processing…</>
+                    : <><Lock size={16} />{paymentMethod === 'Stripe' ? 'Pay & Place Order' : 'Place Order'}</>
+                  }
                 </button>
               </div>
             </div>
@@ -212,8 +308,12 @@ export default function Checkout() {
           <div className="card p-5 sticky top-24 space-y-4">
             <h3 className="font-headline font-semibold text-headline-sm text-ink">Order Summary</h3>
             <div className="space-y-2 text-body-sm">
-              <div className="flex justify-between text-ink-muted"><span>Items ({items.length})</span><span>${total.toFixed(2)}</span></div>
-              <div className="flex justify-between text-ink-muted"><span>Shipping</span><span className="text-green-600">FREE</span></div>
+              <div className="flex justify-between text-ink-muted">
+                <span>Items ({items.length})</span><span>${total.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-ink-muted">
+                <span>Shipping</span><span className="text-green-600">FREE</span>
+              </div>
               <hr className="border-border" />
               <div className="flex justify-between font-headline font-bold text-body-md text-ink">
                 <span>Order Total</span><span>${total.toFixed(2)}</span>
@@ -226,5 +326,14 @@ export default function Checkout() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Checkout() {
+  const stripePromise = useStripePromise()
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutContent />
+    </Elements>
   )
 }
