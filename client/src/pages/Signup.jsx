@@ -1,13 +1,14 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, User, Store } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Signup() {
   const navigate = useNavigate()
   const { register, status, error } = useAuth()
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
+  // 1. Added 'role' to the initial state
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: 'user' })
   const [show, setShow] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -18,7 +19,15 @@ export default function Signup() {
     if (form.password !== form.confirm) return setFormError('Passwords do not match.')
     if (form.password.length < 8) return setFormError('Password must be at least 8 characters.')
     setFormError('')
-    const result = await register({ name: form.name, email: form.email, password: form.password })
+    
+    // 2. Included the 'role' in the register payload
+    const result = await register({ 
+      name: form.name, 
+      email: form.email, 
+      password: form.password,
+      role: form.role 
+    })
+    
     if (!result.error) navigate('/')
   }
 
@@ -37,7 +46,7 @@ export default function Signup() {
 
         <div className="card p-8">
           <h1 className="font-headline font-bold text-headline-md text-ink mb-1">Create Account</h1>
-          <p className="text-body-sm text-ink-muted mb-6">Join millions of shoppers on BestBuy.</p>
+          <p className="text-body-sm text-ink-muted mb-6">Join millions of shoppers and sellers on BestBuy.</p>
 
           {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-body-sm px-4 py-3 rounded mb-4">
@@ -46,6 +55,39 @@ export default function Signup() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* 3. Added the Account Type Selection UI */}
+            <div>
+              <label className="text-label-md text-ink-muted block mb-1.5">Account Type</label>
+              <div className="flex gap-3">
+                <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded cursor-pointer transition-colors ${form.role === 'user' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="user"
+                    checked={form.role === 'user'}
+                    onChange={e => set('role', e.target.value)}
+                    className="sr-only"
+                  />
+                  <User size={18} />
+                  <span className={`text-body-sm font-medium ${form.role === 'user' ? 'text-orange' : 'text-ink'}`}>Shopper</span>
+                </label>
+
+                <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded cursor-pointer transition-colors ${form.role === 'seller' ? 'border-orange bg-orange/5 text-orange' : 'border-gray-200 hover:bg-gray-50 text-ink-muted'}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="seller"
+                    checked={form.role === 'seller'}
+                    onChange={e => set('role', e.target.value)}
+                    className="sr-only"
+                  />
+                  <Store size={18} />
+                  <span className={`text-body-sm font-medium ${form.role === 'seller' ? 'text-orange' : 'text-ink'}`}>Seller</span>
+                </label>
+              </div>
+            </div>
+
             <div>
               <label className="text-label-md text-ink-muted block mb-1.5">Full Name</label>
               <input type="text" value={form.name} onChange={e => set('name', e.target.value)} placeholder="John Doe" required className="input" />
@@ -85,7 +127,7 @@ export default function Signup() {
               />
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 text-body-md">
+            <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 text-body-md mt-2">
               {loading ? <><Loader2 size={17} className="animate-spin" />Creating account…</> : 'Create Account'}
             </button>
           </form>
