@@ -19,7 +19,7 @@ const STATUS_COLORS = {
 const PIPELINE = ['Pending', 'Confirmed', 'Shipped', 'Delivered']
 const TABS = ['Overview', 'Products', 'Orders', 'Reviews']
 
-const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api').replace(/\/$/, '')
+const API_BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
 
 export default function SellerDashboard() {
   const navigate = useNavigate()

@@ -78,3 +78,61 @@ finalproj/
 
 ## 📜 License
 MIT License
+
+---
+
+## Deploy On Vercel (Single Project)
+
+This repository is now configured to deploy as one Vercel project:
+- Frontend: Vite static build from [client/package.json](client/package.json)
+- Backend: Serverless API function from [server/api/index.js](server/api/index.js)
+- Routing config: [vercel.json](vercel.json)
+
+### 1. Push your latest code
+```bash
+git add .
+git commit -m "chore: prepare single-project vercel deploy"
+git push origin main
+```
+
+### 2. Import project in Vercel
+1. Open Vercel dashboard
+2. Click New Project
+3. Import your GitHub repository
+4. Keep root as the repository root (do not set Root Directory to client or server)
+5. Framework Preset can stay as Other
+
+### 3. Configure environment variables in Vercel
+Set these in Project Settings -> Environment Variables:
+
+Required backend vars:
+- MONGO_URI
+- JWT_SECRET
+- CLIENT_URL = https://YOUR_VERCEL_DOMAIN.vercel.app
+
+Optional backend vars (needed for related features):
+- GROQ_API_KEY (AI chat)
+- STRIPE_SECRET_KEY (card payments)
+- CLOUDINARY_CLOUD_NAME
+- CLOUDINARY_API_KEY
+- CLOUDINARY_API_SECRET
+- RESEND_API_KEY
+
+Required frontend vars:
+- VITE_API_URL = /api
+- VITE_STRIPE_PUBLISHABLE_KEY (if Stripe checkout is enabled)
+
+### 4. Deploy
+1. Click Deploy
+2. Wait for build to finish
+3. Open production URL
+
+### 5. Verify production
+1. Open app home page
+2. Sign up / login (checks cookie + JWT flow)
+3. Open products page and search/filter
+4. Add to cart and test checkout (COD and/or Stripe)
+5. Open seller dashboard (checks SSE stream and seller APIs)
+
+### 6. Redeploy after changes
+Any push to your connected branch triggers a new deployment automatically.
