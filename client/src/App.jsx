@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { fetchMe, logoutUser } from './store/authSlice'
 import { useAuth } from './hooks/useAuth'
@@ -81,6 +81,7 @@ export default function App() {
             <Route path="/admin/dashboard"    element={<AdminDash />} />
             <Route path="/forgot-password"    element={<ForgotPassword />} />
             <Route path="/resetpassword/:token" element={<ResetPassword />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </Layout>
